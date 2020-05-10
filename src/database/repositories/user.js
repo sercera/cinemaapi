@@ -67,6 +67,12 @@ class UserRepository {
       .run(`MATCH (user: User) WHERE ID(user)=${id} RETURN user`)
       .then(parser.parse);
   }
+
+  getLikedMovies(userId) {
+    return this.session
+      .run(`MATCH (u: User), (m)<-[r: LIKES]-(u) WHERE ID(u) = ${userId} return m`)
+      .then(parser.parse);
+  }
 }
 
 module.exports = new UserRepository();

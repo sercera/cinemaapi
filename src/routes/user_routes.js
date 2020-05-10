@@ -6,6 +6,7 @@ const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
 
 router.get('/', asyncMiddleware(getAllUsers));
 router.get('/:id', asyncMiddleware(getUserById));
+router.get('/:id/movies', asyncMiddleware(getLikedMovies));
 
 async function getAllUsers(req, res) {
   const users = await UserRepository.getAllUsers();
@@ -17,6 +18,12 @@ async function getUserById(req, res) {
   console.log(id);
   const user = await UserRepository.getUser(id);
   return res.json({ user });
+}
+
+async function getLikedMovies(req, res) {
+  const { id: userId } = req.params;
+  const movies = await UserRepository.getLikedMovies(userId);
+  return res.json({ movies });
 }
 
 module.exports = router;
