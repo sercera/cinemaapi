@@ -1,6 +1,6 @@
-const uuid = require('uuid');
 const bcrypt = require('bcrypt');
 const randomstring = require('randomstring');
+const parser = require('parse-neo4j');
 const driver = require('../driver');
 
 const saltRounds = 10;
@@ -22,8 +22,7 @@ class UserRepository {
             status: 400,
           };
         }
-        return this.session.run('CREATE (user:User {id: {id}, username: {username}, password: {password}, api_key: {api_key}}) RETURN user', {
-          id: uuid.v4(),
+        return this.session.run('CREATE (user:User {username: {username}, password: {password}, api_key: {api_key}}) RETURN user', {
           username,
           password: hashPassword,
           api_key: randomstring.generate({
@@ -55,6 +54,18 @@ class UserRepository {
           status: 400,
         };
       });
+  }
+
+  getAllUsers() {
+    return this.session
+      .run('MATCH (user: User) return user')
+      .then(parser.parse);
+  }
+
+  getUser(id) {
+    return this.session
+      .run(`MATCH (user: User) WHERE ID(user)=${id} RETURN user`)
+      .then(parser.parse);
   }
 }
 

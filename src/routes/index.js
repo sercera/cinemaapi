@@ -2,11 +2,10 @@ const express = require('express');
 
 const router = express.Router();
 const authRoutes = require('./authentication_routes');
+const userRoutes = require('./user_routes');
 
 
 router.use('/auth', authRoutes);
-router.use('/', (req, res) => {
-  res.send('Hi');
-});
+router.use('/user', userRoutes);
 
 module.exports = router;
