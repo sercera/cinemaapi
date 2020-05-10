@@ -1,0 +1,42 @@
+const parser = require('parse-neo4j');
+const driver = require('../driver');
+
+class MovieRepository {
+  constructor() {
+    this.session = driver.session();
+  }
+
+  getAll() {
+    return this.session
+      .run('MATCH (m: Movie) return m')
+      .then(parser.parse);
+  }
+
+  getById(movieId) {
+    return this.session
+      .run(`MATCH (m: Movie) WHERE ID(m) = ${movieId} RETURN m`)
+      .then(parser.parse);
+  }
+
+  create(title, director, category) {
+    return this.session
+      .run(`MATCH (c: Category {name : "${category}"}) 
+    CREATE (m: Movie {title : "${title}", director : "${director}"})-[r: BELONGS_TO]->(c) return m, r`)
+      .then(parser.parse);
+  }
+
+  delete(movieId) {
+    return this.session
+      .run(`MATCH (m: Movie) WHERE ID(m) = ${movieId}
+    DETACH DELETE m`)
+      .then(parser.parse);
+  }
+
+  getByCategory(name) {
+    return this.session
+      .run(`MATCH (m)-[r: BELONGS_TO]->(c: Category {name : "${name}"}) return m`)
+      .then(parser.parse);
+  }
+}
+
+module.exports = new MovieRepository();
