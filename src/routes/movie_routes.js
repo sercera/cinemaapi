@@ -57,5 +57,4 @@ async function addActorToMovie(req, res) {
   await MovieRepository.addActorToMovie(actorId, movieId);
   return res.json({ message: 'Success' });
 }
-
 module.exports = router;
