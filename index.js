@@ -12,7 +12,7 @@ const port = process.env.PORT || '3000';
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use('/', routes);
+app.use('/api', routes);
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
   const { body: { token } = {} } = req;

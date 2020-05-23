@@ -9,6 +9,8 @@ router.get('/:id', asyncMiddleware(getMovieById));
 router.get('/category/:name', asyncMiddleware(getMoviesByCategory));
 router.post('/', asyncMiddleware(createMovie));
 router.delete('/:id', asyncMiddleware(deleteMovie));
+router.get('/actor/:actorId', asyncMiddleware(getMoviesByActor));
+router.post('/:movieId/actor/:actorId', asyncMiddleware(addActorToMovie));
 
 async function getAllMovies(req, res) {
   const movies = await MovieRepository.getAll();
@@ -41,6 +43,19 @@ async function getMoviesByCategory(req, res) {
   const { name } = req.params;
   const movies = await MovieRepository.getByCategory(name);
   return res.json({ movies });
+}
+
+async function getMoviesByActor(req, res) {
+  const { actorId } = req.params;
+
+  const movies = await MovieRepository.getByActor(actorId);
+  return res.json({ movies });
+}
+
+async function addActorToMovie(req, res) {
+  const { actorId, movieId } = req.params;
+  await MovieRepository.addActorToMovie(actorId, movieId);
+  return res.json({ message: 'Success' });
 }
 
 module.exports = router;

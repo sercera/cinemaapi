@@ -37,6 +37,21 @@ class MovieRepository {
       .run(`MATCH (m)-[r: BELONGS_TO]->(c: Category {name : "${name}"}) return m`)
       .then(parser.parse);
   }
+
+  getByActor(id) {
+    return this.session
+      .run(
+        `MATCH (m)<-[r: ACTS_IN]-(a)  where ID(a)= ${id} return m`
+      )
+      .then(parser.parse);
+  }
+
+  addActorToMovie(actorId, movieId) {
+    return this.session
+      .run(`MATCH (a: Actor), (m: Movie) WHERE ID(a)=${actorId} AND ID(m)=${movieId} 
+    CREATE (a)-[r: ACTS_IN]->(m) return r`)
+      .then(parser.parse);
+  }
 }
 
 module.exports = new MovieRepository();
