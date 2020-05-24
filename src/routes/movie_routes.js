@@ -11,6 +11,7 @@ router.post('/', asyncMiddleware(createMovie));
 router.delete('/:id', asyncMiddleware(deleteMovie));
 router.get('/actor/:actorId', asyncMiddleware(getMoviesByActor));
 router.post('/:movieId/actor/:actorId', asyncMiddleware(addActorToMovie));
+router.post('/:movieId/like', asyncMiddleware(likeMovie));
 
 async function getAllMovies(req, res) {
   const movies = await MovieRepository.getAll();
@@ -57,4 +58,11 @@ async function addActorToMovie(req, res) {
   await MovieRepository.addActorToMovie(actorId, movieId);
   return res.json({ message: 'Success' });
 }
+
+async function likeMovie(req, res) {
+  const { body: { userId }, params: { movieId } } = req;
+  await MovieRepository.likeMovie(userId, movieId);
+  return res.json({ message: 'Movie liked' });
+}
+
 module.exports = router;

@@ -48,6 +48,27 @@ class ProjectionRepository {
     DETACH DELETE p`)
       .then(parser.parse);
   }
+
+  checkReservation(seatNumber, projectionId) {
+    return this.session
+      .run(`MATCH (p: Projection) , (u: User)-[veza: MAKE_RESERVATION {seat : "${seatNumber}" }]->(p) WHERE ID(p) = ${projectionId} AND exists(veza.seat)
+    return p
+    `)
+      .then(parser.parse);
+  }
+
+  makeReservation(userId, seatNumber, projectionId) {
+    return this.session
+      .run(`MATCH (p: Projection), (u: User) WHERE ID(p) = ${projectionId} AND ID(u) = ${userId} CREATE (u)-[r:MAKE_RESERVATION {seat: "${seatNumber}"}]->(p) return r`)
+      .then(parser.parse);
+  }
+
+  cancelReservation(reservationId) {
+    return this.session
+      .run(`MATCH ()-[r: MAKE_RESERVATION]->() WHERE ID(r) = ${reservationId}
+    DELETE r`)
+      .then(parser.parse);
+  }
 }
 
 module.exports = new ProjectionRepository();

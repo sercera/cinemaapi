@@ -52,6 +52,12 @@ class MovieRepository {
     CREATE (a)-[r: ACTS_IN]->(m) return r`)
       .then(parser.parse);
   }
+
+  likeMovie(userId, movieId) {
+    return this.session
+      .run(`MATCH (u:User), (m:Movie) WHERE ID(u) = ${userId} AND ID(m) = ${movieId} CREATE (u)-[r:LIKES]->(m) return r`)
+      .then(parser.parse);
+  }
 }
 
 module.exports = new MovieRepository();
