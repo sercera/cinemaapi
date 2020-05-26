@@ -13,10 +13,7 @@ async function register(req, res) {
   try {
     response = await UserRepository.register(username, password);
   } catch (e) {}
-  if (response.status === 400) {
-    return res.status(400).json({ error: response.username });
-  }
-  return res.json({ user: response });
+  return res.json(response);
 }
 
 async function login(req, res) {
@@ -25,10 +22,7 @@ async function login(req, res) {
   try {
     response = await UserRepository.login(username, password);
   } catch (e) {}
-  if (response.status === 400) {
-    return res.status(400).json({ error: response.message });
-  }
-  return res.json({ token: response.token });
+  return res.json(response);
 }
 
 module.exports = router;

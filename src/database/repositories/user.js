@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const randomstring = require('randomstring');
+const jwt = require('jsonwebtoken');
 const parser = require('parse-neo4j');
 const driver = require('../driver');
 
@@ -10,50 +10,40 @@ class UserRepository {
     this.session = driver.session();
   }
 
-  register(username, password) {
+  async register(username, password) {
     const hashPassword = bcrypt.hashSync(password, saltRounds);
-    return this.session.run('MATCH (user:User {username: {username}}) RETURN user', {
+    let user = await this.session.run('MATCH (user:User {username: {username}}) RETURN user', {
       username,
-    })
-      .then((results) => {
-        if (results.records.length !== 0) {
-          return {
-            username: 'username already in use',
-            status: 400,
-          };
-        }
-        return this.session.run('CREATE (user:User {username: {username}, password: {password}, api_key: {api_key}}) RETURN user', {
-          username,
-          password: hashPassword,
-          api_key: randomstring.generate({
-            length: 20,
-            charset: 'hex',
-          }),
-        }).then((results) => results.records[0].get('user')).catch((e) => console.log(e));
-      });
+    }).then((res) => parser.parse(res)[0]);
+    if (user) {
+      throw new Error('Username already in use');
+    }
+    user = await this.session.run('CREATE (user:User {username: {username}, password: {password}}) RETURN user', {
+      username,
+      password: hashPassword,
+    }).then((res) => parser.parse(res)[0]);
+    const payload = { id: user.id };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: '7d',
+    });
+    return { user, token };
   }
 
-  login(username, password) {
-    return this.session.run('MATCH (user:User {username: {username}}) RETURN user', {
+  async login(username, password) {
+    const user = await this.session.run('MATCH (user:User {username: {username}}) RETURN user', {
       username,
-    })
-      .then(async (results) => {
-        if (results.records.length === 0) {
-          return {
-            message: 'username does not exist',
-            status: 400,
-          };
-        }
-        const dbUser = results.records[0].get('user');
-        const result = await bcrypt.compare(password, dbUser.properties.password);
-        if (result) {
-          return { token: dbUser.properties.api_key };
-        }
-        return {
-          message: 'wrong password',
-          status: 400,
-        };
-      });
+    }).then((res) => parser.parse(res)[0]);
+    if (user) {
+      const result = await bcrypt.compare(password, user.password);
+      if (result) {
+        const payload = { id: user.id };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+          expiresIn: '7d',
+        });
+        return { user, token };
+      }
+    }
+    return { error: 'User doesnt exist' };
   }
 
   getAllUsers() {
