@@ -1,5 +1,4 @@
 {
-  "javascript.implicitProjectConfig.experimentalDecorators": true,
   // "files.autoSave": "onFocusChange",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true

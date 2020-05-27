@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "bcrypt": "^4.0.1",
-    "body-parser": "*",
     "cors": "2.8.4",
     "dotenv": "^8.2.0",
     "express": "4.16.3",
@@ -14,14 +13,19 @@
     "uuid": "^8.0.0"
   },
   "scripts": {
-    "dev": "nodemon",
-    "start": "node index.js"
+    "dev": "npx nodemon --watch src --watch misc index.js",
+    "start": "npx forever start -e ./logs/error.log -o ./logs/output.log -a index.js",
+    "restart": "npx forever restart -e ./logs/error.log -o ./logs/output.log -a index.js",
+    "stop": "npx forever stop index.js",
+    "logs": "echo 'output.log:\\n' && cat ./logs/output.log && echo '\\n\\nerror.log\\n' && cat ./logs/error.log",
+    "logs-clear": ":> logs/output.log && :> logs/error.log",
+    "lint": "npx eslint src/** index.js --fix"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.19.1",
-    "nodemon": "^1.19.4",
-    "forever": "^1.0.0"
+    "forever": "^1.0.0",
+    "nodemon": "^1.19.4"
   }
 }
