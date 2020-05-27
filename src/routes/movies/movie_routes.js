@@ -1,16 +1,17 @@
 const express = require('express');
 
 const router = express.Router();
-const MovieRepository = require('../database/repositories/movie');
-const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
+const { MovieRepository } = require('../../database/repositories');
+const { asyncMiddleware } = require('../../middlewares/asyncMiddleware');
 
 router.get('/', asyncMiddleware(getAllMovies));
-router.get('/:id', asyncMiddleware(getMovieById));
-router.get('/category/:name', asyncMiddleware(getMoviesByCategory));
+router.get('/liked', asyncMiddleware(getLikedMovies));
 router.post('/', asyncMiddleware(createMovie));
+router.get('/:id', asyncMiddleware(getMovieById));
 router.delete('/:id', asyncMiddleware(deleteMovie));
-router.get('/actor/:actorId', asyncMiddleware(getMoviesByActor));
-router.post('/:movieId/actor/:actorId', asyncMiddleware(addActorToMovie));
+router.get('/categories/:name', asyncMiddleware(getMoviesByCategory));
+router.get('/actors/:actorId', asyncMiddleware(getMoviesByActor));
+router.post('/:movieId/actors/:actorId', asyncMiddleware(addActorToMovie));
 router.post('/:movieId/like', asyncMiddleware(likeMovie));
 
 async function getAllMovies(req, res) {
@@ -57,6 +58,13 @@ async function addActorToMovie(req, res) {
   const { actorId, movieId } = req.params;
   await MovieRepository.addActorToMovie(actorId, movieId);
   return res.json({ message: 'Success' });
+}
+
+
+async function getLikedMovies(req, res) {
+  const { id: userId } = req.params;
+  const movies = await MovieRepository.getLikedMovies(userId);
+  return res.json({ movies });
 }
 
 async function likeMovie(req, res) {

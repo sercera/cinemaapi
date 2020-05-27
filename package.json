@@ -16,7 +16,8 @@
     "stop": "npx forever stop index.js",
     "logs": "echo 'output.log:\\n' && cat ./logs/output.log && echo '\\n\\nerror.log\\n' && cat ./logs/error.log",
     "logs-clear": ":> logs/output.log && :> logs/error.log",
-    "lint": "npx eslint src/** index.js --fix"
+    "lint": "npx eslint src/** index.js --fix",
+    "cache:clear":"node src/commands/cache_clear.js"
   },
   "devDependencies": {
     "eslint": "^6.8.0",

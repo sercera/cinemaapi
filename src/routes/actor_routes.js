@@ -1,12 +1,12 @@
 const express = require('express');
 
 const router = express.Router();
-const ActorRepository = require('../database/repositories/actor');
+const { ActorRepository } = require('../database/repositories');
 const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
 
 router.get('/', asyncMiddleware(getAll));
-router.get('/:actorId', asyncMiddleware(getById));
 router.post('/', asyncMiddleware(createActor));
+router.get('/:actorId', asyncMiddleware(getById));
 router.delete('/:actorId', asyncMiddleware(deleteActor));
 
 async function getAll(req, res) {

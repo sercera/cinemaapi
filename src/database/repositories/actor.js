@@ -1,34 +1,27 @@
-const parser = require('parse-neo4j');
-const driver = require('../driver');
+const { mainSession } = require('..');
+const { BaseRepository } = require('./base_repo');
 
-class ActorRepository {
-  constructor() {
-    this.session = driver.session();
-  }
-
+class ActorRepository extends BaseRepository {
   getAll() {
-    return this.session
-      .run('MATCH (actor: Actor) return actor')
-      .then(parser.parse);
+    return mainSession
+      .run('MATCH (actor: Actor) return actor', { cacheKey: this.name });
   }
 
   getById(actorId) {
-    return this.session
-      .run(`MATCH (actor: Actor) WHERE ID(actor) = ${actorId} return actor`)
-      .then(parser.parse);
+    return mainSession
+      .run(`MATCH (actor: Actor) WHERE ID(actor) = ${actorId} return actor`, { cacheKey: this.name });
   }
 
   delete(actorId) {
-    return this.session
-      .run(`MATCH (actor: Actor) WHERE ID(actor) = ${actorId} DETACH DELETE actor`);
+    return mainSession
+      .run(`MATCH (actor: Actor) WHERE ID(actor) = ${actorId} DETACH DELETE actor`, { removeCacheKey: this.name });
   }
 
   create(name, lastname, country, birthYear) {
-    return this.session
+    return mainSession
       .run(`CREATE
     (a: Actor {name : "${name}", lastname : "${lastname}", birthYear : "${birthYear}", country : "${country}"})
-    return a`)
-      .then(parser.parse);
+    return a`, { removeCacheKey: this.name });
   }
 }
-module.exports = new ActorRepository();
+module.exports = new ActorRepository('Actor');

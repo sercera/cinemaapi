@@ -1,22 +1,16 @@
-const parser = require('parse-neo4j');
-const driver = require('../driver');
+const { mainSession } = require('..');
+const { BaseRepository } = require('./base_repo');
 
-class CinemaRepository {
-  constructor() {
-    this.session = driver.session();
+class CinemaRepository extends BaseRepository {
+  getAll() {
+    return mainSession
+      .run('MATCH (cinema: Cinema) return cinema', { cacheKey: this.name });
   }
 
-  getAllCinemas() {
-    return this.session
-      .run('MATCH (cinema: Cinema) return cinema')
-      .then(parser.parse);
-  }
-
-  createCinema(name, address) {
-    return this.session
-      .run(`CREATE (c: Cinema {name: "${name}", address: "${address}"}) return c`)
-      .then(parser.parse);
+  create(name, address) {
+    return mainSession
+      .run(`CREATE (c: Cinema {name: "${name}", address: "${address}"}) return c`, { removeCacheKey: this.name });
   }
 }
 
-module.exports = new CinemaRepository();
+module.exports = new CinemaRepository('Cinema');

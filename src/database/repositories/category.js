@@ -1,22 +1,16 @@
-const parser = require('parse-neo4j');
-const driver = require('../driver');
+const { mainSession } = require('..');
+const { BaseRepository } = require('./base_repo');
 
-class CategoryRepository {
-  constructor() {
-    this.session = driver.session();
+class CategoryRepository extends BaseRepository {
+  getAll() {
+    return mainSession
+      .run('MATCH (c: Category) return c', { cacheKey: this.name });
   }
 
-  getAllCategories() {
-    return this.session
-      .run('MATCH (c: Category) return c')
-      .then(parser.parse);
-  }
-
-  createCategory(name) {
-    return this.session
-      .run(`CREATE (c: Category {name: "${name}"}) return c`)
-      .then(parser.parse);
+  create(name) {
+    return mainSession
+      .run(`CREATE (c: Category {name: "${name}"}) return c`, { removeCacheKey: this.name });
   }
 }
 
-module.exports = new CategoryRepository();
+module.exports = new CategoryRepository('Category');

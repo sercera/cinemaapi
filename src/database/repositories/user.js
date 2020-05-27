@@ -1,27 +1,34 @@
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const parser = require('parse-neo4j');
-const driver = require('../driver');
+const { mainSession } = require('..');
+const { BaseRepository } = require('./base_repo');
+const { hashString, hashCheck } = require('../../common/hashing');
 
-const saltRounds = 10;
+class UserRepository extends BaseRepository {
+  getAll() {
+    return mainSession
+      .run('MATCH (user: User) return user', { cacheKey: this.name });
+  }
 
-class UserRepository {
-  constructor() {
-    this.session = driver.session();
+  getById(id) {
+    return mainSession
+      .run(`MATCH (user: User) WHERE ID(user)=${id} RETURN user`, { cacheKey: this.name });
+  }
+
+  getUserByUsername(username) {
+    return mainSession.run(`MATCH (user:User {username: ${username}}) RETURN user`, { cacheKey: this.name });
+  }
+
+  create(username, password) {
+    return mainSession.run(`CREATE (user:User {username: ${username}, password: ${password}}) RETURN user`, { removeCacheKey: this.name });
   }
 
   async register(username, password) {
-    const hashPassword = bcrypt.hashSync(password, saltRounds);
-    let user = await this.session.run('MATCH (user:User {username: {username}}) RETURN user', {
-      username,
-    }).then((res) => parser.parse(res)[0]);
+    let user = await this.getUserByUsername(username).then((res) => res[0]);
     if (user) {
       throw new Error('Username already in use');
     }
-    user = await this.session.run('CREATE (user:User {username: {username}, password: {password}}) RETURN user', {
-      username,
-      password: hashPassword,
-    }).then((res) => parser.parse(res)[0]);
+    const hashPassword = await hashString(password);
+    user = await this.create(user, hashPassword).then((res) => res[0]);
     const payload = { id: user.id };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: '7d',
@@ -30,11 +37,9 @@ class UserRepository {
   }
 
   async login(username, password) {
-    const user = await this.session.run('MATCH (user:User {username: {username}}) RETURN user', {
-      username,
-    }).then((res) => parser.parse(res)[0]);
+    const user = await this.getUserByUsername(username).then((res) => res[0]);
     if (user) {
-      const result = await bcrypt.compare(password, user.password);
+      const result = await hashCheck(user.password, password);
       if (result) {
         const payload = { id: user.id };
         const token = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -45,24 +50,6 @@ class UserRepository {
     }
     return { error: 'User doesnt exist' };
   }
-
-  getAllUsers() {
-    return this.session
-      .run('MATCH (user: User) return user')
-      .then(parser.parse);
-  }
-
-  getUser(id) {
-    return this.session
-      .run(`MATCH (user: User) WHERE ID(user)=${id} RETURN user`)
-      .then(parser.parse);
-  }
-
-  getLikedMovies(userId) {
-    return this.session
-      .run(`MATCH (u: User), (m)<-[r: LIKES]-(u) WHERE ID(u) = ${userId} return m`)
-      .then(parser.parse);
-  }
 }
 
-module.exports = new UserRepository();
+module.exports = new UserRepository('User');

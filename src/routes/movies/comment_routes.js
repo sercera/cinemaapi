@@ -1,12 +1,12 @@
 const express = require('express');
 
 const router = express.Router();
-const CommentRepository = require('../database/repositories/comment');
-const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
+const { CommentRepository } = require('../../database/repositories');
+const { asyncMiddleware } = require('../../middlewares/asyncMiddleware');
 
-router.get('/movie/:movieId', asyncMiddleware(getAllCommentsForMovie));
-router.post('/movie/:movieId', asyncMiddleware(postComment));
-router.delete('/:commentId', asyncMiddleware(deleteComment));
+router.get('/:movieId/comments', asyncMiddleware(getAllCommentsForMovie));
+router.post('/:movieId/comments', asyncMiddleware(postComment));
+router.delete('/:movieId/comments/:commentId', asyncMiddleware(deleteComment));
 
 async function getAllCommentsForMovie(req, res) {
   const { movieId } = req.params;
@@ -21,8 +21,8 @@ async function postComment(req, res) {
 }
 
 async function deleteComment(req, res) {
-  const { commentId } = req.params;
-  await CommentRepository.deleteComment(commentId);
+  const { commentId, movieId } = req.params;
+  await CommentRepository.delete(movieId, commentId);
   return res.json({ message: 'Deleted' });
 }
 

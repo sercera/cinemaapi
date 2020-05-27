@@ -1,21 +1,23 @@
 const express = require('express');
 
 const router = express.Router();
-const ProjectionRepository = require('../database/repositories/projection');
+const { ProjectionRepository } = require('../database/repositories');
 const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
 
 router.get('/', asyncMiddleware(getAll));
-router.get('/cinemas', asyncMiddleware(getAllCinemasForProjection));
-router.get('/cinema/:cinemaId', asyncMiddleware(getAllProjectionsForCinema));
-router.post('/cinema/:cinemaId', asyncMiddleware(addProjection));
 router.delete('/:projectionId', asyncMiddleware(deleteProjection));
-router.post('/:projectionId/reservation', asyncMiddleware(makeReservation));
-router.get('/:projectionId/reservation', asyncMiddleware(checkReservation));
-router.delete('/reservation/:reservationId', asyncMiddleware(cancelReservation));
+
+router.get('/cinemas', asyncMiddleware(getAllCinemasForProjection));
+router.get('/cinemas/:cinemaId', asyncMiddleware(getAllProjectionsForCinema));
+router.post('/cinemas/:cinemaId', asyncMiddleware(addProjection));
+
+router.post('/:projectionId/reservations', asyncMiddleware(makeReservation));
+router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
+router.delete('/reservations/:reservationId', asyncMiddleware(cancelReservation));
 
 
 async function getAll(req, res) {
-  const projections = await ProjectionRepository.getAllProjections();
+  const projections = await ProjectionRepository.getAll();
   return res.json({ projections });
 }
 
@@ -43,7 +45,7 @@ async function addProjection(req, res) {
 
 async function deleteProjection(req, res) {
   const { projectionId } = req.params;
-  await ProjectionRepository.deleteProjection(projectionId);
+  await ProjectionRepository.delete(projectionId);
   return res.json({ message: 'Deleted' });
 }
 
