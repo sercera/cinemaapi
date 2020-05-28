@@ -37,6 +37,10 @@ class UserRepository extends BaseRepository {
     );
   }
 
+  async getManagersByCinema(cinemaId) {
+    return mainSession.run(`MATCH (u:User) WHERE u.cinemaId=${this.stringify(cinemaId)} return u`);
+  }
+
   async register(username, password) {
     let user = await this.getUserByUsername(username);
     if (user) {
