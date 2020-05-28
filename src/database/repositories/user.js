@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { mainSession } = require('..');
 const { BaseRepository } = require('./base_repo');
 const { hashString, hashCheck } = require('../../common/hashing');
+const { USER_ROLES } = require('../../constants/user_roles');
 
 class UserRepository extends BaseRepository {
   getAll() {
@@ -11,24 +12,24 @@ class UserRepository extends BaseRepository {
 
   getById(id) {
     return mainSession
-      .run(`MATCH (user: User) WHERE ID(user)=${id} RETURN user`, { cacheKey: this.name });
+      .runOne(`MATCH (user: User) WHERE ID(user)=${id} RETURN user`, { cacheKey: this.name });
   }
 
   getUserByUsername(username) {
-    return mainSession.run(`MATCH (user:User {username: ${username}}) RETURN user`, { cacheKey: this.name });
+    return mainSession.runOne(`MATCH (user:User {username: ${username}}) RETURN user`, { cacheKey: this.name });
   }
 
-  create(username, password) {
-    return mainSession.run(`CREATE (user:User {username: ${username}, password: ${password}}) RETURN user`, { removeCacheKey: this.name });
+  create(username, password, roles = []) {
+    return mainSession.runOne(`CREATE (user:User {username: ${username}, password: ${password},roles:[${roles.join(',')}]}) RETURN user`, { removeCacheKey: this.name });
   }
 
   async register(username, password) {
-    let user = await this.getUserByUsername(username).then((res) => res[0]);
+    let user = await this.getUserByUsername(username);
     if (user) {
       throw new Error('Username already in use');
     }
     const hashPassword = await hashString(password);
-    user = await this.create(user, hashPassword).then((res) => res[0]);
+    user = await this.create(user, hashPassword, [USER_ROLES.VISITOR]);
     const payload = { id: user.id };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: '7d',
@@ -37,7 +38,7 @@ class UserRepository extends BaseRepository {
   }
 
   async login(username, password) {
-    const user = await this.getUserByUsername(username).then((res) => res[0]);
+    const user = await this.getUserByUsername(username);
     if (user) {
       const result = await hashCheck(user.password, password);
       if (result) {

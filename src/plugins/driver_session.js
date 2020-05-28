@@ -8,12 +8,24 @@ const { cacheClient } = require('../services/redis');
  *
  * @param {neo4j.Session} session
  *
- * @returns {{run:(query:string,options?:{cacheKey:string,removeCacheKey:string[]|string,customKey?:string})=>Promise<any>}}
+ * @returns {
+    {
+      run:(query:string,options?:{cacheKey:string,removeCacheKey:string[]|string,customKey?:string})=>Promise<any[]>,
+      runOne:(query:string,options?:{cacheKey:string,removeCacheKey:string[]|string,customKey?:string})=>Promise<any>
+    }
+  }
  */
-function mongoCachePlugin(session) {
+function driverSessionPlugin(session) {
   const { run } = session;
 
-  session.run = async function (query, options = {}) {
+  session.run = defaultRun(session, false, run);
+  session.runOne = defaultRun(session, true, run);
+  return session;
+}
+
+
+function defaultRun(session, isSingle, run) {
+  return async (query, options = {}) => {
     const { cacheKey, customKey } = options;
     let { removeCacheKey } = options;
     if (removeCacheKey) {
@@ -27,7 +39,9 @@ function mongoCachePlugin(session) {
       }
     }
     if (!cacheKey) {
-      return run.apply(this, [query]).then(parser.parse);
+      let result = await run.apply(session, [query]).then(parser.parse);
+      result = result && isSingle ? result[0] : result;
+      return result;
     }
 
     const key = customKey || query;
@@ -36,14 +50,13 @@ function mongoCachePlugin(session) {
     if (cacheValue) {
       return JSON.parse(cacheValue);
     }
-    const result = await run.apply(this, [query]).then(parser.parse);
+    let result = await run.apply(session, [query]).then(parser.parse);
+    result = result && isSingle ? result[0] : result;
 
     cacheClient.hset(cacheKey, key, JSON.stringify(result));
     return result;
   };
-  return session;
 }
-
 module.exports = {
-  mongoCachePlugin,
+  driverSessionPlugin,
 };

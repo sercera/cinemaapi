@@ -7,9 +7,17 @@ class CinemaRepository extends BaseRepository {
       .run('MATCH (cinema: Cinema) return cinema', { cacheKey: this.name });
   }
 
-  create(name, address) {
+  create(name, address, imageUrl) {
     return mainSession
-      .run(`CREATE (c: Cinema {name: "${name}", address: "${address}"}) return c`, { removeCacheKey: this.name });
+      .runOne(`CREATE (c: Cinema {name: "${name}", address: "${address}", imageUrl:"${imageUrl}"}) return c`, { removeCacheKey: this.name });
+  }
+
+
+  delete(cinemaId) {
+    return mainSession
+      .run(`MATCH (c: Cinema) WHERE ID(c) = ${cinemaId}
+    DETACH DELETE c`,
+      { removeCacheKey: this.name });
   }
 }
 

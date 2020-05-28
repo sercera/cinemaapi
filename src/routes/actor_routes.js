@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const { ActorRepository } = require('../database/repositories');
-const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
+const { asyncMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
 router.post('/', asyncMiddleware(createActor));

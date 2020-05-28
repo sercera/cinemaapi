@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const { UserRepository } = require('../database/repositories');
-const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
+const { asyncMiddleware } = require('../middlewares');
 
 router.post('/register', asyncMiddleware(register));
 router.post('/login', asyncMiddleware(login));

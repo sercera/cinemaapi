@@ -4,6 +4,4 @@ const asyncMiddleware = (requestHandler) => (req, res, next) => {
   });
 };
 
-module.exports = {
-  asyncMiddleware,
-};
+module.exports = asyncMiddleware;

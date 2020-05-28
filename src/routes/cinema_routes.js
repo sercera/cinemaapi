@@ -2,10 +2,10 @@ const express = require('express');
 
 const router = express.Router();
 const { CinemaRepository } = require('../database/repositories');
-const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
+const { asyncMiddleware, imageUploadMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAllCinemas));
-router.post('/', asyncMiddleware(createCinema));
+router.post('/', imageUploadMiddleware().single('image'), asyncMiddleware(createCinema));
 
 async function getAllCinemas(req, res) {
   const cinemas = await CinemaRepository.getAll();
@@ -13,9 +13,9 @@ async function getAllCinemas(req, res) {
 }
 
 async function createCinema(req, res) {
-  const { name, address } = req.body;
-  await CinemaRepository.create(name, address);
-  return res.json({ message: 'Created' });
+  const { body: { name, address }, file: { publicUrl } } = req;
+  const cinema = await CinemaRepository.create(name, address, publicUrl);
+  return res.json({ cinema });
 }
 
 module.exports = router;

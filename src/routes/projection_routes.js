@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const { ProjectionRepository } = require('../database/repositories');
-const { asyncMiddleware } = require('../middlewares/asyncMiddleware');
+const { asyncMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
 router.delete('/:projectionId', asyncMiddleware(deleteProjection));

@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const { CommentRepository } = require('../../database/repositories');
-const { asyncMiddleware } = require('../../middlewares/asyncMiddleware');
+const { asyncMiddleware } = require('../../middlewares');
 
 router.get('/:movieId/comments', asyncMiddleware(getAllCommentsForMovie));
 router.post('/:movieId/comments', asyncMiddleware(postComment));
