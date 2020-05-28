@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 const express = require('express');
 
 const router = express.Router();
@@ -6,7 +7,7 @@ const { asyncMiddleware, imageUploadMiddleware, jwtAuthMiddleware } = require('.
 
 
 router.get('/', asyncMiddleware(getAllMovies));
-// router.get('/recommended', jwtAuthMiddleware(), asyncMiddleware(getRecomendedMovies));
+router.get('/recommended', jwtAuthMiddleware(), asyncMiddleware(getRecomendedMovies));
 router.get('/liked', asyncMiddleware(getLikedMovies));
 router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createMovie));
 router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateMovie));
@@ -63,10 +64,41 @@ async function likeMovie(req, res) {
   return res.json({ message: 'Movie liked' });
 }
 
-// async function getRecomendedMovies(req, res) {
-//   const { id } = req.user;
-//   const movies = await MovieRepository.getRecomendedMovies(id);
-//   return res.json(movies);
-// }
+async function getRecomendedMovies(req, res) {
+  const { id } = req.user;
+  const movies1 = await MovieRepository.getMoviesFromFavCat(id);
+  const movies2 = await MovieRepository.getRecomendedMovies(id);
+  const movies3 = await MovieRepository.getRecomendedMoviesNumber2(id);
+  const movies = [];
+  for (const movie of movies1) {
+    movies.push(movie.m);
+  }
+  let found = false;
+  for (const movie of movies2) {
+    for (let i = 0; i < movies.length; i++) {
+      if (movies[i].id === movie.m.id) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      movies.push(movie.m);
+    }
+  }
+  if (movies3.length !== 0) {
+    for (const movie of movies3) {
+      for (let i = 0; i < movies.length; i++) {
+        if (movies[i].id === movie.m.id) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        movies.push(movie.m);
+      }
+    }
+  }
+  return res.json(movies);
+}
 
 module.exports = router;

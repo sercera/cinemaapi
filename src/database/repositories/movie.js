@@ -73,24 +73,25 @@ class MovieRepository extends BaseRepository {
       .run(`MATCH (u: User), (m)<-[r: LIKES]-(u) WHERE ID(u) = ${userId} return m`, { cacheKey: this.name });
   }
 
-  // getRecomendedMovies(userId) {
-  //   const byCategory = mainSession
-  //     .run(
-  //       `MATCH (u: User) WHERE ID(u)= ${userId}
-  //       MATCH (u)-[:LOVES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)
-  //       RETURN m, count(*) AS occurence
-  //       ORDER BY occurence DESC
-  //       `
-  //     );
-  //   const first = mainSession.run(` MATCH (person:User {id: ${userId}})-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(wanted:Movie)
-  //     RETURN wanted, count(*) AS occurence
-  //     ORDER BY occurence DESC`);
+  getMoviesFromFavCat(userId) {
+    return mainSession.run(`MATCH (u: User) WHERE ID(u)= ${userId}
+    MATCH (u)-[:LOVES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)
+    RETURN m, count(*) AS occurence
+    ORDER BY occurence DESC
+    `);
+  }
 
-  //   const second = mainSession.run(`MATCH (person:User {id: ${userId}})-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(wanted:Movie)<-[:LIKES]-(random2:User)-[:LIKES]->(wanted2:Movie)
-  //   RETURN wanted2, count(*) AS occurence
-  //   ORDER BY occurence DESC`);
-  //   return { byCategory, first, second };
-  // }
+  getRecomendedMovies(userId) {
+    return mainSession.run(`MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(m:Movie)
+      RETURN m, count(*) AS occurence
+      ORDER BY occurence DESC`);
+  }
+
+  getRecomendedMoviesNumber2(userId) {
+    return mainSession.run(`MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(wanted:Movie)<-[:LIKES]-(random2:User)-[:LIKES]->(m:Movie)
+    RETURN m, count(*) AS occurence
+    ORDER BY occurence DESC`);
+  }
 }
 
 module.exports = new MovieRepository('Movie', { cache: true, imageProperty: 'imageUrl' });
