@@ -26,9 +26,9 @@ class BaseRepository {
   }
 
   async update(id, body) {
-    const getOptions = this.cacheGetOptions();
+    const removeOptions = this.cacheRemoveOptions();
     return mainSession
-      .run(`MATCH (obj: ${this.name}) WHERE ID(obj) = ${id} SET obj = ${this.stringify(body)} return obj`, getOptions);
+      .run(`MATCH (obj: ${this.name}) WHERE ID(obj) = ${id} SET obj = ${this.stringify(body)} return obj`, removeOptions);
   }
 
   async create(body) {
@@ -73,7 +73,12 @@ class BaseRepository {
   stringify(data) {
     switch (typeof data) {
       case 'string':
-        return `"${data}"`;
+        try {
+          const jsonData = JSON.parse(data);
+          return this.stringify(jsonData);
+        } catch (err) {
+          return `"${data}"`;
+        }
       case 'object': {
         if (Array.isArray(data)) {
           let body = '[';
