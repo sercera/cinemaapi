@@ -9,7 +9,7 @@ class CommentRepository extends BaseRepository {
 
   getAllCommentsForMovie(movieId) {
     return mainSession
-      .run(`MATCH (m: Movie)<-[r: POSTED_ON]-(c: Comment) WHERE ID(m) = ${movieId} return c`, { cacheKey: this.name, customKey: this.getCustomKey(movieId) });
+      .run(`MATCH (m: Movie)<-[r: POSTED_ON]-(comment: Comment)<-[:WROTE]-(user:User) WHERE ID(m) = ${movieId} return comment,user`, { cacheKey: this.name, customKey: this.getCustomKey(movieId) });
   }
 
   postComment(text, movieId, userId) {

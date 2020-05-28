@@ -6,14 +6,15 @@ const { asyncMiddleware, imageUploadMiddleware, jwtAuthMiddleware } = require('.
 
 
 router.get('/', asyncMiddleware(getAllMovies));
+// router.get('/recommended', jwtAuthMiddleware(), asyncMiddleware(getRecomendedMovies));
 router.get('/liked', asyncMiddleware(getLikedMovies));
 router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createMovie));
 router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateMovie));
 router.get('/:id', asyncMiddleware(getMovieById));
 router.delete('/:id', asyncMiddleware(deleteMovie));
-router.get('/categories/favorite', jwtAuthMiddleware(), asyncMiddleware(getMoviesFromFavCat));
 router.get('/categories/:categoryId', asyncMiddleware(getMoviesByCategory));
 router.post('/:movieId/like', asyncMiddleware(likeMovie));
+
 
 async function getAllMovies(req, res) {
   const { skip, limit, sort } = req.query;
@@ -62,10 +63,10 @@ async function likeMovie(req, res) {
   return res.json({ message: 'Movie liked' });
 }
 
-async function getMoviesFromFavCat(req, res) {
-  const { id } = req.user;
-  const movies = await MovieRepository.getMoviesFromFavCategories(id);
-  return res.json(movies);
-}
+// async function getRecomendedMovies(req, res) {
+//   const { id } = req.user;
+//   const movies = await MovieRepository.getRecomendedMovies(id);
+//   return res.json(movies);
+// }
 
 module.exports = router;

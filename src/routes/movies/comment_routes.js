@@ -11,7 +11,15 @@ router.delete('/:movieId/comments/:commentId', asyncMiddleware(deleteComment));
 async function getAllCommentsForMovie(req, res) {
   const { movieId } = req.params;
   const comments = await CommentRepository.getAllCommentsForMovie(movieId);
-  return res.json({ comments });
+  const formatedComments = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const comment of comments) {
+    let obj = {};
+    obj = comment.comment;
+    obj.user = comment.user.username;
+    formatedComments.push(obj);
+  }
+  return res.json({ comments: formatedComments });
 }
 
 async function postComment(req, res) {

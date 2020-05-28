@@ -24,6 +24,7 @@ async function getAll(req, res) {
     let obj = {};
     obj = proj.projection;
     obj.movie = proj.movie;
+    obj.cinema = proj.cinema;
     formatedProjections.push(obj);
   }
   return res.json({ projections: formatedProjections });
