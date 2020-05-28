@@ -6,6 +6,7 @@ const { asyncMiddleware, imageUploadMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
 router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createActor));
+router.put('/:actorId', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateActor));
 router.get('/:actorId', asyncMiddleware(getById));
 router.delete('/:actorId', asyncMiddleware(deleteActor));
 
@@ -24,6 +25,13 @@ async function createActor(req, res) {
   const actor = await ActorRepository.create(req.body);
   return res.json({ actor });
 }
+
+async function updateActor(req, res) {
+  const { actorId } = req.params;
+  const actor = await ActorRepository.update(actorId, req.body);
+  return res.json({ actor });
+}
+
 
 async function deleteActor(req, res) {
   const { actorId } = req.params;

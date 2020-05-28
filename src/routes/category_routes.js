@@ -6,6 +6,7 @@ const { asyncMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAllCategories));
 router.post('/', asyncMiddleware(createCategory));
+router.post('/:id', asyncMiddleware(updateCategory));
 router.delete('/:id', asyncMiddleware(deleteCategory));
 
 
@@ -16,6 +17,12 @@ async function getAllCategories(req, res) {
 
 async function createCategory(req, res) {
   const category = await CategoryRepository.create(req.body);
+  return res.json({ category });
+}
+
+async function updateCategory(req, res) {
+  const { id } = req.params;
+  const category = await CategoryRepository.update(id, req.body);
   return res.json({ category });
 }
 
