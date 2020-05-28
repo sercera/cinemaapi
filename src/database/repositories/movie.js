@@ -11,8 +11,25 @@ class MovieRepository extends BaseRepository {
        MATCH (a: Actor) WHERE ID(a) IN ${this.stringify(actorIds)}
        MERGE (m: Movie ${this.stringify(movie)})
        MERGE (m)-[:BELONGS_TO]->(c)
-       MERGE (m)<-[r: ACTS_IN]-(a)
+       MERGE (m)<-[: ACTS_IN]-(a)
        RETURN m`, { removeCacheKey: this.name });
+  }
+
+  async update(id, movie) {
+    const { categoryIds, actorIds } = movie;
+    delete movie.actorIds;
+    return mainSession
+      .runOne(`MATCH (m: ${this.name}) WHERE ID(m) = ${id} 
+      MATCH (c: Category) WHERE ID(c) IN ${this.stringify(categoryIds)} 
+      MATCH (a: Actor) WHERE ID(a) IN ${this.stringify(actorIds)}
+      MATCH (m)-[oldBel:BELONGS_TO]->(oldC)
+      MATCH (m)<-[oldAct: ACTS_IN]-(oldA)
+      SET m = ${this.stringify(movie)}
+      DELETE oldBel
+      DELETE oldAct
+      MERGE (m)-[:BELONGS_TO]->(c)
+      MERGE (m)<-[: ACTS_IN]-(a)
+      RETURN m`, { removeCacheKey: this.name });
   }
 
   getByCategory(id) {

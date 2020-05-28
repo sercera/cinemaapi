@@ -6,23 +6,18 @@ const { asyncMiddleware, imageUploadMiddleware } = require('../../middlewares');
 
 
 router.get('/', asyncMiddleware(getAllMovies));
-router.put('/:id', asyncMiddleware(updateMovie));
 router.get('/liked', asyncMiddleware(getLikedMovies));
 router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createMovie));
+router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateMovie));
 router.get('/:id', asyncMiddleware(getMovieById));
 router.delete('/:id', asyncMiddleware(deleteMovie));
 router.get('/categories/:categoryId', asyncMiddleware(getMoviesByCategory));
 router.post('/:movieId/like', asyncMiddleware(likeMovie));
 
 async function getAllMovies(req, res) {
-  const movies = await MovieRepository.getAll();
+  const { skip, limit, sort } = req.query;
+  const movies = await MovieRepository.getAll({ limit, skip, sort });
   return res.json({ movies });
-}
-
-async function updateMovie(req, res) {
-  const { id } = req.params;
-  const updatedMovie = await MovieRepository.update(id, req.body);
-  return res.json({ updatedMovie });
 }
 
 async function getMoviesByCategory(req, res) {
@@ -46,6 +41,12 @@ async function getMovieById(req, res) {
 async function createMovie(req, res) {
   const movie = await MovieRepository.create(req.body);
   return res.json({ movie });
+}
+
+async function updateMovie(req, res) {
+  const { id } = req.params;
+  const updatedMovie = await MovieRepository.update(id, req.body);
+  return res.json({ updatedMovie });
 }
 
 async function deleteMovie(req, res) {

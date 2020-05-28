@@ -26,7 +26,6 @@ function driverSessionPlugin(session) {
 
 function defaultRun(session, isSingle, run) {
   return async (query, options = {}) => {
-    console.log(query, options);
     const {
       cacheKey, customKey, limit, skip,
     } = options;
