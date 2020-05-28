@@ -16,15 +16,15 @@ router.get('/actors/:actorId', asyncMiddleware(getMoviesByActor));
 router.post('/:movieId/actors/:actorId', asyncMiddleware(addActorToMovie));
 router.post('/:movieId/like', asyncMiddleware(likeMovie));
 
+async function getAllMovies(req, res) {
+  const movies = await MovieRepository.getAll();
+  return res.json({ movies });
+}
+
 async function updateMovie(req, res) {
   const { id } = req.params;
   const updatedMovie = await MovieRepository.update(id, req.body);
   return res.json({ updatedMovie });
-}
-
-async function getAllMovies(req, res) {
-  const movies = await MovieRepository.getAll();
-  return res.json({ movies });
 }
 
 async function getMovieById(req, res) {
