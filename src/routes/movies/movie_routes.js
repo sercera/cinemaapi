@@ -27,7 +27,7 @@ async function getMoviesByCategory(req, res) {
 }
 
 async function getLikedMovies(req, res) {
-  const { id: userId } = req.params;
+  const { id: userId } = req.user;
   const movies = await MovieRepository.getLikedMovies(userId);
   return res.json({ movies });
 }
