@@ -5,40 +5,75 @@ const { hashString, hashCheck } = require('../../common/hashing');
 const { USER_ROLES } = require('../../constants/user_roles');
 
 class UserRepository extends BaseRepository {
-  getAll() {
+  async update(id, body) {
+    const {
+      roles, cinemaId, password, ...filtered
+    } = body;
+    if (password) {
+      const hashedPassword = await hashString(password);
+      filtered.password = hashedPassword;
+    }
+    const removeOptions = this.cacheRemoveOptions();
+    return mainSession.runOne(
+      `MATCH (obj: ${
+        this.name
+      }) WHERE ID(obj) = ${id} SET obj += ${this.stringify(
+        filtered
+      )} return obj`,
+      removeOptions
+    )
+      .then((user) => this.userWithoutPassword(user));
+  }
+
+  async getAll(options = {}) {
+    const getOptions = this.cacheGetOptions();
     return mainSession
-      .run('MATCH (user: User) return user', { cacheKey: this.name });
+      .run(`MATCH (obj: ${this.name}) return obj`, {
+        ...getOptions,
+        ...options,
+      })
+      .then((users) => users.map((user) => this.userWithoutPassword(user)));
   }
 
-  getById(id) {
-    return mainSession
-      .runOne(`MATCH (user: User) WHERE ID(user)=${id} RETURN user`, { cacheKey: this.name });
+  async getAllManagers() {
+    return mainSession.run(
+      `MATCH (u:User {roles:["${USER_ROLES.MANAGER}"]}) RETURN u`,
+      { cacheKey: this.name }
+    )
+      .then((users) => users.map((user) => this.userWithoutPassword(user)));
   }
 
-  getUser(searchBody) {
-    return mainSession.runOne(`MATCH (user:User ${this.stringify(searchBody)}) RETURN user`, { cacheKey: this.name });
+  async getUser(searchBody) {
+    return mainSession.runOne(
+      `MATCH (user:User ${this.stringify(searchBody)}) RETURN user`,
+      { cacheKey: this.name }
+    )
+      .then((user) => this.userWithoutPassword(user));
   }
 
-  async createManager(username, password, cinemaId) {
+  async createManager(user) {
+    const { cinemaId, password } = user;
     const hashedPassword = await hashString(password);
     const userBody = {
-      username,
+      ...user,
       password: hashedPassword,
       roles: [USER_ROLES.MANAGER],
-      cinemaId,
     };
     return mainSession.runOne(
-      `CREATE (user:User ${this.stringify(userBody)})
-      WITH user
-      MATCH (c: Cinema) WHERE ID(c)=${cinemaId}
-      CREATE (user)-[r: IS_MANAGING]->(c)
+      `MATCH (c: Cinema) WHERE ID(c)=${cinemaId}
+      CREATE (user:User ${this.stringify(userBody)})-[r: IS_MANAGING]->(c)
       RETURN user`,
       { removeCacheKey: this.name }
-    );
+    )
+      .then((user) => this.userWithoutPassword(user));
   }
 
   async getManagersByCinema(cinemaId) {
-    return mainSession.run(`MATCH (u:User) WHERE u.cinemaId=${this.stringify(cinemaId)} return u`);
+    return mainSession.run(
+      `MATCH (u:User) WHERE u.cinemaId=${this.stringify(cinemaId)} return u`,
+      { cacheKey: this.name }
+    )
+      .then((users) => users.map((user) => this.userWithoutPassword(user)));
   }
 
   async register(username, password) {
@@ -52,7 +87,7 @@ class UserRepository extends BaseRepository {
       password: hashPassword,
       roles: [USER_ROLES.VISITOR],
     };
-    user = await this.create(userBody);
+    user = this.userWithoutPassword(await this.create(userBody));
     const payload = { id: user.id };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: '7d',
@@ -61,7 +96,7 @@ class UserRepository extends BaseRepository {
   }
 
   async login(username, password) {
-    const user = await this.getUser({ username });
+    const user = this.userWithoutPassword(await this.getUser({ username }));
     if (user) {
       const result = await hashCheck(user.password, password);
       if (result) {
@@ -74,6 +109,17 @@ class UserRepository extends BaseRepository {
     }
     throw new Error('Invalid username or password');
   }
+
+  userWithoutPassword(user) {
+    if (!user) {
+      return user;
+    }
+    const { password, ...filtered } = user;
+    return filtered;
+  }
 }
 
-module.exports = new UserRepository('User');
+module.exports = new UserRepository('User', {
+  cache: true,
+  imageProperty: 'imageUrl',
+});

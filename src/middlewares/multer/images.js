@@ -22,7 +22,7 @@ const imageUploadMiddleware = (imagePropName) => (req, res, next) => {
         if (!fs.existsSync(relativePath)) {
           shell.mkdir('-p', relativePath);
         }
-        req.body[imagePropName] = `${process.env.HOST}/${filePath}`;
+        req.body[imagePropName] = `${process.env.HOST}/${filePath}/`;
         cb(null, relativePath);
       },
       filename(req, file, cb) {
