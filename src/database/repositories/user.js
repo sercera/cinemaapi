@@ -15,8 +15,8 @@ class UserRepository extends BaseRepository {
       .runOne(`MATCH (user: User) WHERE ID(user)=${id} RETURN user`, { cacheKey: this.name });
   }
 
-  getUserByUsername(username) {
-    return mainSession.runOne(`MATCH (user:User {username: ${username}}) RETURN user`, { cacheKey: this.name });
+  getUser(searchBody) {
+    return mainSession.runOne(`MATCH (user:User ${this.stringify(searchBody)}) RETURN user`, { cacheKey: this.name });
   }
 
   async createManager(username, password, cinemaId) {
@@ -42,7 +42,7 @@ class UserRepository extends BaseRepository {
   }
 
   async register(username, password) {
-    let user = await this.getUserByUsername(username);
+    let user = await this.getUser({ username });
     if (user) {
       throw new Error('Username already in use');
     }
@@ -61,7 +61,7 @@ class UserRepository extends BaseRepository {
   }
 
   async login(username, password) {
-    const user = await this.getUserByUsername(username);
+    const user = await this.getUser({ username });
     if (user) {
       const result = await hashCheck(user.password, password);
       if (result) {
@@ -72,7 +72,7 @@ class UserRepository extends BaseRepository {
         return { user, token };
       }
     }
-    return { error: 'User doesnt exist' };
+    throw new Error('Invalid username or password');
   }
 }
 

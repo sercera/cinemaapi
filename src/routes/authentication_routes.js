@@ -12,7 +12,11 @@ async function register(req, res) {
   let response;
   try {
     response = await UserRepository.register(username, password);
-  } catch (e) {}
+  } catch (e) {
+    return res.status(409).json({
+      message: e.message,
+    });
+  }
   return res.json(response);
 }
 
@@ -21,7 +25,11 @@ async function login(req, res) {
   let response;
   try {
     response = await UserRepository.login(username, password);
-  } catch (e) {}
+  } catch (e) {
+    return res.status(400).json({
+      message: e.message,
+    });
+  }
   return res.json(response);
 }
 

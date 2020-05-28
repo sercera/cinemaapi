@@ -19,18 +19,19 @@ async function getAll(req, res) {
 async function getById(req, res) {
   const { actorId } = req.params;
   const actor = await ActorRepository.getById(actorId);
-  return res.json({ actor });
+  return res.json(actor);
 }
 
 async function createActor(req, res) {
+  console.log(req.body);
   const actor = await ActorRepository.create(req.body);
-  return res.json({ actor });
+  return res.json(actor);
 }
 
 async function updateActor(req, res) {
   const { actorId } = req.params;
   const actor = await ActorRepository.update(actorId, req.body);
-  return res.json({ actor });
+  return res.json(actor);
 }
 
 

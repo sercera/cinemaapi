@@ -1,4 +1,20 @@
 {
+  "name": "nbp-neo4j",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:sercera/cinemaapi.git",
+  "author": "Aleksandar Stankovic <stankovic.aleksandar@elfak.rs>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npx nodemon --watch src --watch index.js index.js",
+    "start": "npx forever start -e ./logs/error.log -o ./logs/output.log -a index.js",
+    "restart": "npx forever restart -e ./logs/error.log -o ./logs/output.log -a index.js",
+    "stop": "npx forever stop index.js",
+    "logs": "echo 'output.log:\\n' && cat ./logs/output.log && echo '\\n\\nerror.log\\n' && cat ./logs/error.log",
+    "logs-clear": ":> logs/output.log && :> logs/error.log",
+    "lint": "npx eslint src/** index.js --fix",
+    "cache:clear": "node src/commands/cache_clear.js"
+  },
   "dependencies": {
     "bcrypt": "^4.0.1",
     "cors": "2.8.4",
@@ -11,16 +27,6 @@
     "neo4j-driver": "^4.0.2",
     "parse-neo4j": "^0.6.11",
     "shelljs": "^0.8.4"
-  },
-  "scripts": {
-    "dev": "npx nodemon --watch src --watch misc index.js",
-    "start": "npx forever start -e ./logs/error.log -o ./logs/output.log -a index.js",
-    "restart": "npx forever restart -e ./logs/error.log -o ./logs/output.log -a index.js",
-    "stop": "npx forever stop index.js",
-    "logs": "echo 'output.log:\\n' && cat ./logs/output.log && echo '\\n\\nerror.log\\n' && cat ./logs/error.log",
-    "logs-clear": ":> logs/output.log && :> logs/error.log",
-    "lint": "npx eslint src/** index.js --fix",
-    "cache:clear": "node src/commands/cache_clear.js"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
