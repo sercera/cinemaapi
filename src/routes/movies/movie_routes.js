@@ -18,36 +18,36 @@ router.post('/:movieId/like', asyncMiddleware(likeMovie));
 async function getAllMovies(req, res) {
   const { skip, limit, sort } = req.query;
   const movies = await MovieRepository.getAll({ limit, skip, sort });
-  return res.json({ movies });
+  return res.json(movies);
 }
 
 async function getMoviesByCategory(req, res) {
   const { categoryId } = req.params;
   const movies = await MovieRepository.getByCategory(categoryId);
-  return res.json({ movies });
+  return res.json(movies);
 }
 
 async function getLikedMovies(req, res) {
   const { id: userId } = req.user;
   const movies = await MovieRepository.getLikedMovies(userId);
-  return res.json({ movies });
+  return res.json(movies);
 }
 
 async function getMovieById(req, res) {
   const { id } = req.params;
   const movie = await MovieRepository.getById(id);
-  return res.json({ movie });
+  return res.json(movie);
 }
 
 async function createMovie(req, res) {
   const movie = await MovieRepository.create(req.body);
-  return res.json({ movie });
+  return res.json(movie);
 }
 
 async function updateMovie(req, res) {
   const { id } = req.params;
   const updatedMovie = await MovieRepository.update(id, req.body);
-  return res.json({ updatedMovie });
+  return res.json(updatedMovie);
 }
 
 async function deleteMovie(req, res) {

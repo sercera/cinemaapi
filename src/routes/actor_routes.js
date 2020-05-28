@@ -13,7 +13,7 @@ router.delete('/:actorId', asyncMiddleware(deleteActor));
 async function getAll(req, res) {
   const { limit, skip, sort } = req.query;
   const actors = await ActorRepository.getAll({ limit, skip, sort });
-  return res.json({ actors });
+  return res.json(actors);
 }
 
 async function getById(req, res) {
