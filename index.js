@@ -5,15 +5,17 @@ const { initializeEnvironment } = require('./src/common/environment');
 
 initializeEnvironment();
 
+const { parseNestedFormDataMiddleware } = require('./src/middlewares');
 const routes = require('./src/routes/index');
 
 const port = process.env.PORT || '3000';
 
 const app = express();
 app.use(cors());
+app.use('/public', express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/public', express.static('public'));
+app.use(parseNestedFormDataMiddleware());
 
 app.use('/api', routes);
 

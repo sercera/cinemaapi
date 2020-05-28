@@ -2,37 +2,29 @@ const { mainSession } = require('..');
 const { BaseRepository } = require('./base_repo');
 
 class MovieRepository extends BaseRepository {
-  getAll() {
+  create(movie) {
+    const { categoryIds, actorIds } = movie;
+    delete movie.actorIds;
     return mainSession
-      .run('MATCH (m: Movie) return m', { cacheKey: this.name });
+      .runOne(`
+       MATCH (c: Category) WHERE ID(c) IN ${this.stringify(categoryIds)} 
+       MATCH (a: Actor) WHERE ID(a) IN ${this.stringify(actorIds)}
+       MERGE (m: Movie ${this.stringify(movie)})
+       MERGE (m)-[:BELONGS_TO]->(c)
+       MERGE (m)<-[r: ACTS_IN]-(a)
+       RETURN m`, { removeCacheKey: this.name });
   }
 
-  getById(movieId) {
+  getByCategory(id) {
     return mainSession
-      .run(`MATCH (m: Movie) WHERE ID(m) = ${movieId} RETURN m`, { cacheKey: this.name });
-  }
-
-  create(title, director, category) {
-    return mainSession
-      .run(`MATCH (c: Category {name : "${category}"}) 
-    CREATE (m: Movie {title : "${title}", director : "${director}"})-[r: BELONGS_TO]->(c) return m, r`, { removeCacheKey: this.name });
-  }
-
-  delete(movieId) {
-    return mainSession
-      .run(`MATCH (m: Movie) WHERE ID(m) = ${movieId}
-    DETACH DELETE m`, { removeCacheKey: this.name });
-  }
-
-  getByCategory(name) {
-    return mainSession
-      .run(`MATCH (m)-[r: BELONGS_TO]->(c: Category {name : "${name}"}) return m`, { cacheKey: this.name });
+      .run(`MATCH (m)-[r: BELONGS_TO]->(c: Category)
+      WHERE ID(c) = ${id} RETURN m`, { cacheKey: this.name });
   }
 
   getByActor(id) {
     return mainSession
       .run(
-        `MATCH (m)<-[r: ACTS_IN]-(a)  where ID(a)= ${id} return m`,
+        `MATCH (m)<-[r: ACTS_IN]-(a: Actor)  where ID(a)= ${id} return m`,
         { cacheKey: this.name }
       );
   }
@@ -41,6 +33,14 @@ class MovieRepository extends BaseRepository {
     return mainSession
       .run(`MATCH (a: Actor), (m: Movie) WHERE ID(a)=${actorId} AND ID(m)=${movieId} 
     CREATE (a)-[r: ACTS_IN]->(m) return r`,
+      { removeCacheKey: this.name });
+  }
+
+
+  removeActorFromMovie(actorId, movieId) {
+    return mainSession
+      .run(`MATCH (a: Actor)-[r: ACTS_IN]->(m: Movie) WHERE ID(a)=${actorId} AND ID(m)=${movieId} 
+    DELETE r`,
       { removeCacheKey: this.name });
   }
 
@@ -57,4 +57,4 @@ class MovieRepository extends BaseRepository {
   }
 }
 
-module.exports = new MovieRepository('Movie');
+module.exports = new MovieRepository('Movie', { cache: true, imageProperty: 'imageUrl' });

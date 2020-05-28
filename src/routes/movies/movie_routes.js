@@ -2,18 +2,16 @@ const express = require('express');
 
 const router = express.Router();
 const { MovieRepository } = require('../../database/repositories');
-const { asyncMiddleware } = require('../../middlewares');
+const { asyncMiddleware, imageUploadMiddleware } = require('../../middlewares');
 
-router.put('/:id', asyncMiddleware(updateMovie));
 
 router.get('/', asyncMiddleware(getAllMovies));
+router.put('/:id', asyncMiddleware(updateMovie));
 router.get('/liked', asyncMiddleware(getLikedMovies));
-router.post('/', asyncMiddleware(createMovie));
+router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createMovie));
 router.get('/:id', asyncMiddleware(getMovieById));
 router.delete('/:id', asyncMiddleware(deleteMovie));
-router.get('/categories/:name', asyncMiddleware(getMoviesByCategory));
-router.get('/actors/:actorId', asyncMiddleware(getMoviesByActor));
-router.post('/:movieId/actors/:actorId', asyncMiddleware(addActorToMovie));
+router.get('/categories/:categoryId', asyncMiddleware(getMoviesByCategory));
 router.post('/:movieId/like', asyncMiddleware(likeMovie));
 
 async function updateMovie(req, res) {
@@ -27,6 +25,18 @@ async function getAllMovies(req, res) {
   return res.json({ movies });
 }
 
+async function getMoviesByCategory(req, res) {
+  const { categoryId } = req.params;
+  const movies = await MovieRepository.getByCategory(categoryId);
+  return res.json({ movies });
+}
+
+async function getLikedMovies(req, res) {
+  const { id: userId } = req.params;
+  const movies = await MovieRepository.getLikedMovies(userId);
+  return res.json({ movies });
+}
+
 async function getMovieById(req, res) {
   const { id } = req.params;
   const movie = await MovieRepository.getById(id);
@@ -34,46 +44,16 @@ async function getMovieById(req, res) {
 }
 
 async function createMovie(req, res) {
-  const { title, director, category } = req.body;
-  try {
-    await MovieRepository.create(title, director, category);
-  } catch (e) {}
-  return res.json({ message: 'Created' });
+  const movie = await MovieRepository.create(req.body);
+  return res.json({ movie });
 }
 
 async function deleteMovie(req, res) {
   const { id } = req.params;
-  try {
-    await MovieRepository.delete(id);
-  } catch (e) {}
-  return res.json({ message: 'Deleted' });
+  const response = await MovieRepository.deleteById(id);
+  return res.json(response);
 }
 
-async function getMoviesByCategory(req, res) {
-  const { name } = req.params;
-  const movies = await MovieRepository.getByCategory(name);
-  return res.json({ movies });
-}
-
-async function getMoviesByActor(req, res) {
-  const { actorId } = req.params;
-
-  const movies = await MovieRepository.getByActor(actorId);
-  return res.json({ movies });
-}
-
-async function addActorToMovie(req, res) {
-  const { actorId, movieId } = req.params;
-  await MovieRepository.addActorToMovie(actorId, movieId);
-  return res.json({ message: 'Success' });
-}
-
-
-async function getLikedMovies(req, res) {
-  const { id: userId } = req.params;
-  const movies = await MovieRepository.getLikedMovies(userId);
-  return res.json({ movies });
-}
 
 async function likeMovie(req, res) {
   const { body: { userId }, params: { movieId } } = req;
