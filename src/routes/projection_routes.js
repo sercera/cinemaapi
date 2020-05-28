@@ -18,7 +18,15 @@ router.delete('/reservations/:reservationId', asyncMiddleware(cancelReservation)
 
 async function getAll(req, res) {
   const projections = await ProjectionRepository.getAll();
-  return res.json({ projections });
+  const formatedProjections = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const proj of projections) {
+    let obj = {};
+    obj = proj.projection;
+    obj.movie = proj.movie;
+    formatedProjections.push(obj);
+  }
+  return res.json({ projections: formatedProjections });
 }
 
 async function getAllCinemasForProjection(req, res) {
@@ -30,7 +38,15 @@ async function getAllCinemasForProjection(req, res) {
 async function getAllProjectionsForCinema(req, res) {
   const { cinemaId } = req.params;
   const projections = await ProjectionRepository.getAllProjectionsForCinema(cinemaId);
-  return res.json({ projections });
+  const formatedProjections = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const proj of projections) {
+    let obj = {};
+    obj = proj.projection;
+    obj.movie = proj.movie;
+    formatedProjections.push(obj);
+  }
+  return res.json({ projections: formatedProjections });
 }
 
 async function addProjection(req, res) {

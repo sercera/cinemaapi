@@ -5,7 +5,7 @@ const { BaseRepository } = require('./base_repo');
 class ProjectionRepository extends BaseRepository {
   getAll() {
     return mainSession
-      .run('MATCH (projection: Projection) return projection', { cacheKey: this.name });
+      .run('MATCH (projection: Projection)-[:IS_STREAMING]->(movie:Movie) return projection, movie', { cacheKey: this.name });
   }
 
   getAllCinemasForProjection(name) {
@@ -17,8 +17,8 @@ class ProjectionRepository extends BaseRepository {
 
   getAllProjectionsForCinema(cinemaId) {
     return mainSession
-      .run(`MATCH (c)<-[r: PLAYED_AT]-(p) WHERE ID(c) = ${cinemaId}
-    return p
+      .run(`MATCH (c)<-[r: PLAYED_AT]-(projection)-[:IS_STREAMING]->(movie:Movie) WHERE ID(c) = ${cinemaId}
+    return projection, movie
     `,
       { cacheKey: this.name });
   }

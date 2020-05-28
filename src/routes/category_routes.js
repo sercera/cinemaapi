@@ -2,10 +2,11 @@ const express = require('express');
 
 const router = express.Router();
 const { CategoryRepository } = require('../database/repositories');
-const { asyncMiddleware } = require('../middlewares');
+const { asyncMiddleware, jwtAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAllCategories));
 router.post('/', asyncMiddleware(createCategory));
+router.post('/:id/favorite', jwtAuthMiddleware(), asyncMiddleware(favCategory));
 router.post('/:id', asyncMiddleware(updateCategory));
 router.delete('/:id', asyncMiddleware(deleteCategory));
 
@@ -32,6 +33,12 @@ async function deleteCategory(req, res) {
   const { id } = req.params;
   const response = await CategoryRepository.deleteById(id);
   return res.json(response);
+}
+
+async function favCategory(req, res) {
+  const { user: { id: userId }, params: { id: categoryId } } = req;
+  await CategoryRepository.likeCategory(userId, categoryId);
+  return res.json(req.user);
 }
 
 module.exports = router;
