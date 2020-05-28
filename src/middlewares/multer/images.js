@@ -5,7 +5,7 @@ const shell = require('shelljs');
 const md5 = require('md5');
 
 
-const imageUploadMiddleware = () => multer({
+const imageUploadMiddleware = (imagePropName) => multer({
   fileFilter(req, file, callback) {
     const ext = path.extname(file.originalname);
     if (ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
@@ -21,17 +21,17 @@ const imageUploadMiddleware = () => multer({
       if (!fs.existsSync(relativePath)) {
         shell.mkdir('-p', relativePath);
       }
-      file.publicUrl = `${process.env.HOST}/${filePath}`;
+      req.body[imagePropName] = `${process.env.HOST}/${filePath}`;
       cb(null, relativePath);
     },
     filename(req, file, cb) {
       const ext = path.extname(file.originalname);
       const fileName = `${md5(new Date().getMilliseconds())}${ext}`;
-      file.publicUrl += fileName;
+      req.body[imagePropName] += fileName;
       cb(null, fileName);
     },
   }),
-});
+}).single(imagePropName);
 
 module.exports = {
   imageUploadMiddleware,

@@ -2,10 +2,10 @@ const express = require('express');
 
 const router = express.Router();
 const { ActorRepository } = require('../database/repositories');
-const { asyncMiddleware } = require('../middlewares');
+const { asyncMiddleware, imageUploadMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
-router.post('/', asyncMiddleware(createActor));
+router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createActor));
 router.get('/:actorId', asyncMiddleware(getById));
 router.delete('/:actorId', asyncMiddleware(deleteActor));
 
@@ -16,23 +16,19 @@ async function getAll(req, res) {
 
 async function getById(req, res) {
   const { actorId } = req.params;
-  console.log(actorId);
   const actor = await ActorRepository.getById(actorId);
   return res.json({ actor });
 }
 
 async function createActor(req, res) {
-  const {
-    name, lastname = '', country = '', birthYear = '',
-  } = req.body;
-  await ActorRepository.create(name, lastname, country, birthYear);
-  return res.json({ message: 'Actor created!' });
+  const actor = await ActorRepository.create(req.body);
+  return res.json({ actor });
 }
 
 async function deleteActor(req, res) {
   const { actorId } = req.params;
-  await ActorRepository.delete(actorId);
-  return res.json({ message: 'Deleted' });
+  const response = await ActorRepository.deleteById(actorId);
+  return res.json(response);
 }
 
 module.exports = router;
