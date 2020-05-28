@@ -19,8 +19,22 @@ class UserRepository extends BaseRepository {
     return mainSession.runOne(`MATCH (user:User {username: ${username}}) RETURN user`, { cacheKey: this.name });
   }
 
-  create(username, password, roles = []) {
-    return mainSession.runOne(`CREATE (user:User {username: ${username}, password: ${password},roles:[${roles.join(',')}]}) RETURN user`, { removeCacheKey: this.name });
+  async createManager(username, password, cinemaId) {
+    const hashedPassword = await hashString(password);
+    const userBody = {
+      username,
+      password: hashedPassword,
+      roles: [USER_ROLES.MANAGER],
+      cinemaId,
+    };
+    return mainSession.runOne(
+      `CREATE (user:User ${this.stringify(userBody)})
+      WITH user
+      MATCH (c: Cinema) WHERE ID(c)=${cinemaId}
+      CREATE (user)-[r: IS_MANAGING]->(c)
+      RETURN user`,
+      { removeCacheKey: this.name }
+    );
   }
 
   async register(username, password) {
@@ -29,7 +43,12 @@ class UserRepository extends BaseRepository {
       throw new Error('Username already in use');
     }
     const hashPassword = await hashString(password);
-    user = await this.create(user, hashPassword, [USER_ROLES.VISITOR]);
+    const userBody = {
+      username,
+      password: hashPassword,
+      roles: [USER_ROLES.VISITOR],
+    };
+    user = await this.create(userBody);
     const payload = { id: user.id };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: '7d',
