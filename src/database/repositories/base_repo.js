@@ -25,6 +25,11 @@ class BaseRepository {
       .runOne(`MATCH (obj: ${this.name}) WHERE ID(obj) = ${id} return obj`, getOptions);
   }
 
+  async update(id, body) {
+    const getOptions = this.cacheGetOptions();
+    return mainSession
+      .run(`MATCH (obj: ${this.name}) WHERE ID(obj) = ${id} SET obj = ${this.stringify(body)} return obj`, getOptions);
+  }
 
   async create(body) {
     const removeOptions = this.cacheRemoveOptions();
