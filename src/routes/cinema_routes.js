@@ -1,18 +1,43 @@
 const express = require('express');
 
 const router = express.Router();
-const { CinemaRepository } = require('../database/repositories');
+const {
+  CinemaRepository,
+  ProjectionRepository,
+} = require('../database/repositories');
 const { asyncMiddleware, imageUploadMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAllCinemas));
-router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createCinema));
-router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateCinema));
+router.get('/:id', asyncMiddleware(getCinema));
+router.post(
+  '/',
+  imageUploadMiddleware('imageUrl'),
+  asyncMiddleware(createCinema)
+);
+router.put(
+  '/:id',
+  imageUploadMiddleware('imageUrl'),
+  asyncMiddleware(updateCinema)
+);
 router.delete('/:id', asyncMiddleware(deleteCinema));
 
 async function getAllCinemas(req, res) {
   const { limit, skip, sort } = req.query;
   const cinemas = await CinemaRepository.getAll({ limit, skip, sort });
   return res.json(cinemas);
+}
+
+async function getCinema(req, res) {
+  const { id } = req.params;
+  const [cinema, projections] = await Promise.all([
+    CinemaRepository.getById(id),
+    ProjectionRepository.getAllProjectionsForCinema(id),
+  ]);
+  if (!cinema) {
+    return res.status(404).json({ message: 'Not found!' });
+  }
+  cinema.projections = projections;
+  return res.json(cinema);
 }
 
 async function createCinema(req, res) {

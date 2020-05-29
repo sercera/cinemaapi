@@ -3,9 +3,19 @@ const { BaseRepository } = require('./base_repo');
 
 
 class ProjectionRepository extends BaseRepository {
-  getAll() {
-    return mainSession
+  async getAll() {
+    const projections = await mainSession
       .run('MATCH (cinema:Cinema)<-[:PLAYED_AT]-(projection: Projection)-[:IS_STREAMING]->(movie:Movie) return projection,movie,cinema ORDER BY projection.time', { cacheKey: this.name });
+    const formatedProjections = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const proj of projections) {
+      let obj = {};
+      obj = proj.projection;
+      obj.movie = proj.movie;
+      obj.cinema = proj.cinema;
+      formatedProjections.push(obj);
+    }
+    return formatedProjections;
   }
 
   getAllCinemasForProjection(name) {
@@ -15,18 +25,28 @@ class ProjectionRepository extends BaseRepository {
       { cacheKey: this.name });
   }
 
-  getAllProjectionsForCinema(cinemaId) {
-    return mainSession
+  async getAllProjectionsForCinema(cinemaId) {
+    const projections = await mainSession
       .run(`MATCH (c)<-[r: PLAYED_AT]-(projection)-[:IS_STREAMING]->(movie:Movie) WHERE ID(c) = ${cinemaId}
     return projection, movie
     `,
       { cacheKey: this.name });
+    const formatedProjections = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const proj of projections) {
+      let obj = {};
+      obj = proj.projection;
+      obj.movie = proj.movie;
+      formatedProjections.push(obj);
+    }
+    return formatedProjections;
   }
 
-  addProjection(cinemaId, name, time, hall, numberOfSeats, movieId) {
+  addProjection(cinemaId, projection) {
+    const { movieId } = projection;
     return mainSession
-      .run(`MATCH (c: Cinema), (m: Movie) WHERE ID(c) = ${cinemaId} AND ID(m) = ${movieId} CREATE (p: Projection 
-        {name : "${name}", time : "${time}", hall : "${hall}", numberOfSeats : "${numberOfSeats}"}) 
+      .run(`MATCH (c: Cinema), (m: Movie) WHERE ID(c) = ${cinemaId} AND ID(m) = ${movieId} 
+        CREATE (p: Projection ${this.stringify(projection)}) 
         CREATE (m)<-[r1: IS_STREAMING]-(p)-[r: PLAYED_AT]->(c) return r`,
       { removeCacheKey: this.name });
   }

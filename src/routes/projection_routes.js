@@ -18,16 +18,7 @@ router.delete('/reservations/:reservationId', asyncMiddleware(cancelReservation)
 
 async function getAll(req, res) {
   const projections = await ProjectionRepository.getAll();
-  const formatedProjections = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const proj of projections) {
-    let obj = {};
-    obj = proj.projection;
-    obj.movie = proj.movie;
-    obj.cinema = proj.cinema;
-    formatedProjections.push(obj);
-  }
-  return res.json({ projections: formatedProjections });
+  return res.json({ projections });
 }
 
 async function getAllCinemasForProjection(req, res) {
@@ -39,24 +30,14 @@ async function getAllCinemasForProjection(req, res) {
 async function getAllProjectionsForCinema(req, res) {
   const { cinemaId } = req.params;
   const projections = await ProjectionRepository.getAllProjectionsForCinema(cinemaId);
-  const formatedProjections = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const proj of projections) {
-    let obj = {};
-    obj = proj.projection;
-    obj.movie = proj.movie;
-    formatedProjections.push(obj);
-  }
-  return res.json({ projections: formatedProjections });
+  return res.json({ projections });
 }
 
 async function addProjection(req, res) {
   const {
-    params: { cinemaId }, body: {
-      name, time, hall, numberOfSeats, movieId,
-    },
+    params: { cinemaId }, body,
   } = req;
-  await ProjectionRepository.addProjection(cinemaId, name, time, hall, numberOfSeats, movieId);
+  await ProjectionRepository.addProjection(cinemaId, body);
   return res.json({ message: 'Projection added' });
 }
 

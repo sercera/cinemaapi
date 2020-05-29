@@ -43,12 +43,12 @@ class UserRepository extends BaseRepository {
       .then((users) => users.map((user) => this.userWithoutPassword(user)));
   }
 
-  async getUser(searchBody) {
+  async getUser(searchBody, getPassword = false) {
     return mainSession.runOne(
       `MATCH (user:User ${this.stringify(searchBody)}) RETURN user`,
       { cacheKey: this.name }
     )
-      .then((user) => this.userWithoutPassword(user));
+      .then((user) => (getPassword ? user : this.userWithoutPassword(user)));
   }
 
   async createManager(user) {
@@ -96,7 +96,7 @@ class UserRepository extends BaseRepository {
   }
 
   async login(username, password) {
-    const user = this.userWithoutPassword(await this.getUser({ username }));
+    const user = await this.getUser({ username }, true);
     if (user) {
       const result = await hashCheck(user.password, password);
       if (result) {
@@ -104,7 +104,7 @@ class UserRepository extends BaseRepository {
         const token = jwt.sign(payload, process.env.JWT_SECRET, {
           expiresIn: '7d',
         });
-        return { user, token };
+        return { user: this.userWithoutPassword(user), token };
       }
     }
     throw new Error('Invalid username or password');
