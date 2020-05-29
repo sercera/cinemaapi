@@ -19,10 +19,17 @@ class CommentRepository extends BaseRepository {
       { removeCacheKey: this.name, customKey: this.getCustomKey(movieId) });
   }
 
-  delete(movieId, commentId) {
+  delete(movieId, commentId, userId) {
+    return mainSession
+      .run(`MATCH (c: Comment)<-[:WROTE]-(u:User) WHERE ID(c) = ${commentId} AND ID(u)=${userId}
+    DETACH DELETE c`,
+      { removeCacheKey: this.name, customKey: this.getCustomKey(movieId) });
+  }
+
+  deleteAsAdmin(movieId, commentId) {
     return mainSession
       .run(`MATCH (c: Comment) WHERE ID(c) = ${commentId}
-    DETACH DELETE c`,
+          DETACH DELETE c`,
       { removeCacheKey: this.name, customKey: this.getCustomKey(movieId) });
   }
 }
