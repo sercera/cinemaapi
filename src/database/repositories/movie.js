@@ -84,6 +84,11 @@ class MovieRepository extends BaseRepository {
     );
   }
 
+  dislikeMovie(userId, movieId) {
+    return mainSession.run(
+      `MATCH (u:User)-[r:LIKES]->(m:Movie) WHERE ID(u)=${userId} AND ID(m)=${movieId} DETACH DELETE r`
+    );
+  }
 
   likeMovies(userId, movieIds) {
     return mainSession.run(
@@ -95,7 +100,7 @@ class MovieRepository extends BaseRepository {
 
   getLikedMovies(userId) {
     return mainSession.run(
-      `MATCH (u: User), (m)<-[r: LIKES]-(u) WHERE ID(u) = ${userId} return m`,
+      `MATCH (u: User), (m:Movie)<-[r: LIKES]-(u) WHERE ID(u) = ${userId} return m`,
       { cacheKey: this.name }
     );
   }

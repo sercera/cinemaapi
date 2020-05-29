@@ -12,7 +12,7 @@ router.put('/like', jwtAuthMiddleware(), asyncMiddleware(likeMovies));
 router.get('/', asyncMiddleware(getAllMovies));
 router.get('/categories', jwtAuthMiddleware(), asyncMiddleware(getMoviesByLikedCategories));
 router.get('/recommended', jwtAuthMiddleware(), asyncMiddleware(getRecomendedMovies));
-router.get('/liked', asyncMiddleware(getLikedMovies));
+router.get('/liked', jwtAuthMiddleware(), asyncMiddleware(getLikedMovies));
 router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createMovie));
 router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateMovie));
 router.get('/:id', asyncMiddleware(getMovieById));
@@ -80,8 +80,13 @@ async function deleteMovie(req, res) {
 }
 
 async function likeMovie(req, res) {
-  const { body: { userId }, params: { movieId } } = req;
-  await MovieRepository.likeMovie(userId, movieId);
+  const { body: { like }, params: { movieId }, user: { id: userId } } = req;
+  if (like) {
+    console.log(1);
+    await MovieRepository.likeMovie(userId, movieId);
+  } else {
+    await MovieRepository.dislikeMovie(userId, movieId);
+  }
   return res.json({ message: 'Movie liked' });
 }
 
