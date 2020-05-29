@@ -26,6 +26,7 @@ async function getAll(req, res) {
 
 async function getById(req, res) {
   const { id } = req.params;
+  const { userId } = req.body;
   const projection = await ProjectionRepository.getById(id);
   const actors = await ActorRepository.getActorsForMovie(projection.movie.id);
   const comments = await CommentRepository.getAllCommentsForMovie(projection.movie.id);
@@ -44,6 +45,12 @@ async function getById(req, res) {
   }
   projection.movie.comments = formatedComments;
   projection.movie.likes = likes[0];
+  const liked = await MovieRepository.checkIfUserLikedMovie(projection.movie.id, userId);
+  if (liked) {
+    projection.movie.liked = true;
+  } else {
+    projection.movie.liekd = false;
+  }
   return res.json(projection);
 }
 

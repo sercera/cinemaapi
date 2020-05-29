@@ -89,6 +89,13 @@ class MovieRepository extends BaseRepository {
     );
   }
 
+  checkIfUserLikedMovie(movieId, userId) {
+    return mainSession.runOne(
+      `MATCH (u:User), (m:Movie) WHERE ID(u)=${userId} AND ID(m)=${movieId}
+      RETURN EXISTS( (u)-[:LIKES]-(m) )`
+    );
+  }
+
   getRecomended(userId) {
     return mainSession.run(`MATCH (u: User) WHERE ID(u)= ${userId}
     MATCH (u)-[:LOVES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)<-[:IS_STREAMING]-()
