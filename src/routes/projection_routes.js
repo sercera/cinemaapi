@@ -4,7 +4,7 @@ const router = express.Router();
 const {
   ProjectionRepository, ActorRepository, CommentRepository, MovieRepository,
 } = require('../database/repositories');
-const { asyncMiddleware } = require('../middlewares');
+const { asyncMiddleware, jwtAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
 router.delete('/:projectionId', asyncMiddleware(deleteProjection));
@@ -16,7 +16,7 @@ router.post('/cinemas/:cinemaId', asyncMiddleware(addProjection));
 router.post('/:projectionId/reservations', asyncMiddleware(makeReservation));
 router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
 router.delete('/reservations/:reservationId', asyncMiddleware(cancelReservation));
-router.get('/:id', asyncMiddleware(getById));
+router.get('/:id', jwtAuthMiddleware(), asyncMiddleware(getById));
 
 
 async function getAll(req, res) {
@@ -26,11 +26,12 @@ async function getAll(req, res) {
 
 async function getById(req, res) {
   const { id } = req.params;
-  const { userId } = req.body;
+  const { id: userId } = req.user;
   const projection = await ProjectionRepository.getById(id);
   const actors = await ActorRepository.getActorsForMovie(projection.movie.id);
   const comments = await CommentRepository.getAllCommentsForMovie(projection.movie.id);
   const likes = await MovieRepository.getNumberOfLikes(projection.movie.id);
+  const liked = await MovieRepository.checkIfUserLikedMovie(projection.movie.id, userId);
   projection.movie.actors = actors;
   const formatedComments = [];
   // eslint-disable-next-line no-restricted-syntax
@@ -45,7 +46,6 @@ async function getById(req, res) {
   }
   projection.movie.comments = formatedComments;
   projection.movie.likes = likes[0];
-  const liked = await MovieRepository.checkIfUserLikedMovie(projection.movie.id, userId);
   if (liked) {
     projection.movie.liked = true;
   } else {

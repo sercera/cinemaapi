@@ -45,6 +45,14 @@ class MovieRepository extends BaseRepository {
     );
   }
 
+  getByCategories(ids) {
+    return mainSession.run(
+      `MATCH (m)-[r: BELONGS_TO]->(c: Category)
+      WHERE ID(c) IN ${this.stringify(ids)}
+      `
+    );
+  }
+
   getByActor(id) {
     return mainSession.run(
       `MATCH (m)<-[r: ACTS_IN]-(a: Actor)  where ID(a)= ${id} return m`,
