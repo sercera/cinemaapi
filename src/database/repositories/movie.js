@@ -45,10 +45,10 @@ class MovieRepository extends BaseRepository {
     );
   }
 
-  getByCategories(ids) {
+  getByLikedCategories(userId) {
     return mainSession.run(
-      `MATCH (m)-[r: BELONGS_TO]->(c: Category)
-      WHERE ID(c) IN ${this.stringify(ids)}
+      `MATCH (movie)-[r:BELONGS_TO]->(c: Category)<-[:LIKES]-(u:User) WHERE ID(u)=${userId}
+      RETURN movie, count(movie) AS occassions
       `
     );
   }
