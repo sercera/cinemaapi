@@ -15,17 +15,23 @@ const { cacheClient } = require('../services/redis');
     }
   }
  */
-function driverSessionPlugin(session) {
-  const { run } = session;
+function driverSessionPlugin(driver) {
+  const SessionWrapper = {
+    run: defaultRun(false, driver),
+    runOne: defaultRun(true, driver),
+  };
 
-  session.run = defaultRun(session, false, run);
-  session.runOne = defaultRun(session, true, run);
-  return session;
+  return SessionWrapper;
 }
 
-
-function defaultRun(session, isSingle, run) {
+/**
+ *
+ * @param {boolean} isSingle
+ * @param {neo4j.Driver} driver
+ */
+function defaultRun(isSingle, driver) {
   return async (query, options = {}) => {
+    const session = driver.session();
     const {
       cacheKey, customKey, limit, skip,
     } = options;
@@ -47,7 +53,8 @@ function defaultRun(session, isSingle, run) {
       }
     }
     if (!cacheKey || process.env.USE_CACHE === 'false') {
-      let result = await run.apply(session, [query]).then(parser.parse);
+      let result = await session.run(query).then(parser.parse);
+      session.close();
       result = result && isSingle ? result[0] : result;
       return result;
     }
@@ -58,7 +65,8 @@ function defaultRun(session, isSingle, run) {
     if (cacheValue) {
       return JSON.parse(cacheValue);
     }
-    let result = await run.apply(session, [query]).then(parser.parse);
+    let result = await session.run(query).then(parser.parse);
+    session.close();
     result = result && isSingle ? result[0] : result;
 
     cacheClient.hset(cacheKey, key, JSON.stringify(result));

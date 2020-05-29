@@ -10,7 +10,8 @@ const driver = neo4j.driver(
   neo4j.auth.basic(NEO4J_USERNAME, NEO4J_PASSWORD)
 );
 
-const mainSession = driverSessionPlugin(driver.session());
+const mainSession = driverSessionPlugin(driver);
+
 module.exports = {
   mainSession,
 };
