@@ -23,7 +23,6 @@ async function getById(req, res) {
 }
 
 async function createActor(req, res) {
-  console.log(req.body);
   const actor = await ActorRepository.create(req.body);
   return res.json(actor);
 }

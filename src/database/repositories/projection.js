@@ -49,13 +49,17 @@ class ProjectionRepository extends BaseRepository {
     return formatedProjections;
   }
 
-  addProjection(cinemaId, projection) {
+  async addProjection(cinemaId, projection) {
     const { movieId } = projection;
-    return mainSession
-      .run(`MATCH (c: Cinema), (m: Movie) WHERE ID(c) = ${cinemaId} AND ID(m) = ${movieId} 
+    const { p, m } = await mainSession
+      .runOne(`MATCH (c: Cinema), (m: Movie) WHERE ID(c) = ${cinemaId} AND ID(m) = ${movieId} 
         CREATE (p: Projection ${this.stringify(projection)}) 
-        CREATE (m)<-[r1: IS_STREAMING]-(p)-[r: PLAYED_AT]->(c) return r`,
+        CREATE (m)<-[r1: IS_STREAMING]-(p)-[r: PLAYED_AT]->(c) return p,m`,
       { removeCacheKey: this.name });
+    if (p && m) {
+      return { ...p, movie: m };
+    }
+    return null;
   }
 
   isStreaming(projectionId, movieId) {

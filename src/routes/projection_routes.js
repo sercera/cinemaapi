@@ -36,16 +36,22 @@ async function getAllCinemasForProjection(req, res) {
 
 async function getAllProjectionsForCinema(req, res) {
   const { cinemaId } = req.params;
-  const projections = await ProjectionRepository.getAllProjectionsForCinema(cinemaId);
+  const projections = await ProjectionRepository.getAllProjectionsForCinema(
+    cinemaId
+  );
   return res.json({ projections });
 }
 
 async function addProjection(req, res) {
   const {
-    params: { cinemaId }, body,
+    params: { cinemaId },
+    body,
   } = req;
-  await ProjectionRepository.addProjection(cinemaId, body);
-  return res.json({ message: 'Projection added' });
+  const projection = await ProjectionRepository.addProjection(cinemaId, body);
+  if (!projection) {
+    return res.status(404).json({ message: 'Failed creating' });
+  }
+  return res.json(projection);
 }
 
 async function deleteProjection(req, res) {
