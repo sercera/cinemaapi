@@ -75,27 +75,41 @@ class ProjectionRepository extends BaseRepository {
     DETACH DELETE p`, { removeCacheKey: this.name });
   }
 
-  makeReservation(userId, seatNumbers, projectionId) {
-    console.log(seatNumbers);
-    const seatsCount = seatNumbers.length;
+  makeReservation(userId, seatNumbers, totalSeats, projectionId) {
+    const size = seatNumbers.length;
     return mainSession
       .run(`MATCH (p: Projection), (u: User) WHERE ID(p) = ${projectionId} AND ID(u) = ${userId} CREATE (u)-[r:MAKE_RESERVATION {seats: [${seatNumbers}]}]->(p)
-      SET p += { seatsAvailable: TOINT(p.seatsAvailable)-${seatsCount} , seatsTaken: [${seatNumbers}]}
+      SET p += { seatsAvailable: TOINT(p.seatsAvailable)- ${size} , seatsTaken: [${totalSeats}]}
       return r`);
   }
 
-  getResetvations(projectionId) {
+  getReservationsForProjection(projectionId) {
     return mainSession
       .run(`MATCH (p: Projection) , (u: User)-[link: MAKE_RESERVATION]->(p) WHERE ID(p) = ${projectionId} AND exists(link.seats)
     return p, link
     `);
   }
 
-  cancelReservation(reservationId) {
+  getReservationsForUser(userId) {
+    return mainSession
+      .run(`
+        MATCH (u:User)-[r:MAKE_RESERVATION]->(p:Projection) WHERE ID(u)=${userId} return r
+      `);
+  }
+
+  getProjectionForReservation(reservationId) {
+    return mainSession.runOne(`MATCH (u:User)-[r:MAKE_RESERVATION]->(p:Projection) WHERE ID(r)=${reservationId} return p`);
+  }
+
+  getReservationById(reservationId) {
+    return mainSession.runOne(`MATCH (u:User)-[r:MAKE_RESERVATION]->(p:Projection) WHERE ID(r)=${reservationId} return r`);
+  }
+
+  cancelReservation(reservationId, seatsTaken) {
     return mainSession
       .run(`MATCH ()-[r: MAKE_RESERVATION]->(p) WHERE ID(r) = ${reservationId}
       WITH size(r.seats) AS length, p, r
-      SET p += { seatsAvailable: TOINT(p.seatsAvailable)+ TOINT(length) }
+      SET p += { seatsAvailable: TOINT(p.seatsAvailable)+ TOINT(length), seatsTaken: [${seatsTaken}] }
     DELETE r`);
   }
 }

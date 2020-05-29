@@ -62,19 +62,41 @@ async function deleteProjection(req, res) {
 
 async function makeReservation(req, res) {
   const { body: { userId, seatNumbers }, params: { projectionId } } = req;
-  await ProjectionRepository.makeReservation(userId, seatNumbers, projectionId);
-  return res.json({ message: 'Reservation was made' });
+  const { seatsTaken } = await ProjectionRepository.getById(projectionId);
+  let seatTaken = false;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const seat of seatNumbers) {
+    if (seatsTaken.includes(seat)) {
+      seatTaken = true;
+    }
+  }
+  if (!seatTaken) {
+    const totalSeatsTaken = seatsTaken.concat(seatNumbers);
+    const reservation = await ProjectionRepository.makeReservation(userId, seatNumbers, totalSeatsTaken, projectionId);
+    return res.json(reservation);
+  }
+  return res.json({ message: 'Seat taken' });
 }
 
 async function checkReservation(req, res) {
   const { params: { projectionId } } = req;
-  const reservation = await ProjectionRepository.getResetvations(projectionId);
+  const reservation = await ProjectionRepository.getReservationsForProjection(projectionId);
   return res.json({ reservation });
 }
 
 async function cancelReservation(req, res) {
   const { reservationId } = req.params;
-  await ProjectionRepository.cancelReservation(reservationId);
+  // eslint-disable-next-line prefer-const
+  let { seatsTaken } = await ProjectionRepository.getProjectionForReservation(reservationId);
+  const { seats } = await ProjectionRepository.getReservationById(reservationId);
+  // eslint-disable-next-line no-restricted-syntax
+  for (const seat of seats) {
+    const index = seatsTaken.indexOf(seat);
+    if (index > -1) {
+      seatsTaken.splice(index, 1);
+    }
+  }
+  await ProjectionRepository.cancelReservation(reservationId, seatsTaken);
   return res.json({ message: 'Reservation canceled' });
 }
 
