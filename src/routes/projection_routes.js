@@ -1,7 +1,9 @@
 const express = require('express');
 
 const router = express.Router();
-const { ProjectionRepository, ActorRepository, CommentRepository } = require('../database/repositories');
+const {
+  ProjectionRepository, ActorRepository, CommentRepository, MovieRepository,
+} = require('../database/repositories');
 const { asyncMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
@@ -27,16 +29,21 @@ async function getById(req, res) {
   const projection = await ProjectionRepository.getById(id);
   const actors = await ActorRepository.getActorsForMovie(projection.movie.id);
   const comments = await CommentRepository.getAllCommentsForMovie(projection.movie.id);
-  projection.actors = actors;
+  const likes = await MovieRepository.getNumberOfLikes(projection.movie.id);
+  projection.movie.actors = actors;
   const formatedComments = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const comment of comments) {
     let obj = {};
     obj = comment.comment;
-    obj.user = comment.user.username;
+    obj.user = {
+      username: comment.user.username,
+      imageUrl: comment.user.imageUrl,
+    };
     formatedComments.push(obj);
   }
-  projection.comments = formatedComments;
+  projection.movie.comments = formatedComments;
+  projection.movie.likes = likes[0];
   return res.json(projection);
 }
 

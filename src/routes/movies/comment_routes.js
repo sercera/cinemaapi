@@ -16,7 +16,10 @@ async function getAllCommentsForMovie(req, res) {
   for (const comment of comments) {
     let obj = {};
     obj = comment.comment;
-    obj.user = comment.user.username;
+    obj.user = {
+      username: comment.user.username,
+      imageUrl: comment.user.imageUrl,
+    };
     formatedComments.push(obj);
   }
   return res.json({ comments: formatedComments });
