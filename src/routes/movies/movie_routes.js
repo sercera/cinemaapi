@@ -82,7 +82,6 @@ async function deleteMovie(req, res) {
 async function likeMovie(req, res) {
   const { body: { like }, params: { movieId }, user: { id: userId } } = req;
   if (like) {
-    console.log(1);
     await MovieRepository.likeMovie(userId, movieId);
   } else {
     await MovieRepository.dislikeMovie(userId, movieId);
