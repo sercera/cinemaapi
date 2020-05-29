@@ -82,24 +82,20 @@ class MovieRepository extends BaseRepository {
     );
   }
 
-  getMoviesFromFavCat(userId) {
+  getRecomended(userId) {
     return mainSession.run(`MATCH (u: User) WHERE ID(u)= ${userId}
-    MATCH (u)-[:LOVES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)
-    RETURN m, count(*) AS occurence
+    MATCH (u)-[:LOVES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)<-[:IS_STREAMING]-()
+    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title, m.description as description, m.imageUrl AS image, count(*) AS occurence
+    ORDER BY occurence DESC
+    UNION
+    MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(m:Movie)<-[:IS_STREAMING]-()
+    RETURN ID(m) AS id, m.categoryIds AS categories,m.title AS title, m.description as description,m.imageUrl AS image, count(*) AS occurence
+    ORDER BY occurence DESC
+    UNION
+    MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(wanted:Movie)<-[:LIKES]-(random2:User)-[:LIKES]->(m:Movie)<-[:IS_STREAMING]-()
+    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title,m.description as description, m.imageUrl AS image, count(*) AS occurence
     ORDER BY occurence DESC
     `);
-  }
-
-  getRecomendedMovies(userId) {
-    return mainSession.run(`MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(m:Movie)
-      RETURN m, count(*) AS occurence
-      ORDER BY occurence DESC`);
-  }
-
-  getRecomendedMoviesNumber2(userId) {
-    return mainSession.run(`MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(wanted:Movie)<-[:LIKES]-(random2:User)-[:LIKES]->(m:Movie)
-    RETURN m, count(*) AS occurence
-    ORDER BY occurence DESC`);
   }
 }
 

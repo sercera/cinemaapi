@@ -66,39 +66,9 @@ async function likeMovie(req, res) {
 
 async function getRecomendedMovies(req, res) {
   const { id } = req.user;
-  const movies1 = await MovieRepository.getMoviesFromFavCat(id);
-  const movies2 = await MovieRepository.getRecomendedMovies(id);
-  const movies3 = await MovieRepository.getRecomendedMoviesNumber2(id);
-  const movies = [];
-  for (const movie of movies1) {
-    movies.push(movie.m);
-  }
-  let found = false;
-  for (const movie of movies2) {
-    for (let i = 0; i < movies.length; i++) {
-      if (movies[i].id === movie.m.id) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      movies.push(movie.m);
-    }
-  }
-  if (movies3.length !== 0) {
-    for (const movie of movies3) {
-      for (let i = 0; i < movies.length; i++) {
-        if (movies[i].id === movie.m.id) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        movies.push(movie.m);
-      }
-    }
-  }
+  const movies = await MovieRepository.getRecomended(id);
   return res.json(movies);
 }
+
 
 module.exports = router;
