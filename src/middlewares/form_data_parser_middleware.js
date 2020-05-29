@@ -3,7 +3,11 @@ const nestedFormDataParse = () => (req, res, next) => {
   if (typeof body === 'object') {
     Object.entries(body).forEach(([key, value]) => {
       try {
-        req.body[key] = JSON.parse(value);
+        if (typeof value === 'string') {
+          req.body[key] = JSON.parse(value);
+        } else {
+          req.body[key] = value;
+        }
       } catch (err) {
         req.body[key] = value;
       }

@@ -78,7 +78,17 @@ class MovieRepository extends BaseRepository {
 
   likeMovie(userId, movieId) {
     return mainSession.run(
-      `MATCH (u:User), (m:Movie) WHERE ID(u) = ${userId} AND ID(m) = ${movieId} CREATE (u)-[r:LIKES]->(m) return r`,
+      `MATCH (u:User), (m:Movie) WHERE ID(u) = ${userId} AND ID(m) = ${movieId} 
+      MERGE (u)-[r:LIKES]->(m) return r`,
+      { removeCacheKey: this.name }
+    );
+  }
+
+
+  likeMovies(userId, movieIds) {
+    return mainSession.run(
+      `MATCH (u:User), (m:Movie) WHERE ID(u) = ${userId} AND ID(m) IN ${this.stringify(movieIds)} 
+      MERGE (u)-[r:LIKES]->(m) return r`,
       { removeCacheKey: this.name }
     );
   }
@@ -106,7 +116,7 @@ class MovieRepository extends BaseRepository {
 
   getRecomended(userId) {
     return mainSession.run(`MATCH (u: User) WHERE ID(u)= ${userId}
-    MATCH (u)-[:LOVES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)<-[:IS_STREAMING]-()
+    MATCH (u)-[:LIKES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)<-[:IS_STREAMING]-()
     RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title, m.description as description, m.imageUrl AS image, count(*) AS occurence
     ORDER BY occurence DESC
     UNION

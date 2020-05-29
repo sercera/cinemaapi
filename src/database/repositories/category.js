@@ -4,13 +4,29 @@ const { mainSession } = require('..');
 
 class CategoryRepository extends BaseRepository {
   async likeCategory(userId, categoryId) {
-    const getOptions = this.cacheGetOptions();
+    const options = this.cacheRemoveOptions();
     return mainSession
       .runOne(
         `MATCH (cat: ${this.name}) WHERE ID(cat) = ${categoryId}
         MATCH (user:User) WHERE ID(user) = ${userId}
-        CREATE (user)-[r:LOVES]->(cat)`,
-        getOptions
+        MERGE (user)-[r:LIKES]->(cat)`,
+        options
+      );
+  }
+
+  async likeCategories(userId, categoryIds) {
+    const options = this.cacheRemoveOptions();
+    return mainSession
+      .runOne(
+        `MATCH (user:User) WHERE ID(user) = ${userId}
+        MATCH (cat: ${this.name}) WHERE ID(cat) IN ${this.stringify(categoryIds)}
+        MERGE (user)-[:LIKES]->(cat)
+        WITH user
+        MATCH (user)-[oldR:LIKES]->(oldCat:${this.name})
+        WHERE NOT ID(oldCat) IN ${this.stringify(categoryIds)}
+        DELETE oldR
+        `,
+        options
       );
   }
 }

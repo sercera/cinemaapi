@@ -6,6 +6,9 @@ const { MovieRepository } = require('../../database/repositories');
 const { asyncMiddleware, imageUploadMiddleware, jwtAuthMiddleware } = require('../../middlewares');
 
 
+router.post('/:movieId/like', jwtAuthMiddleware(), asyncMiddleware(likeMovie));
+router.put('/like', jwtAuthMiddleware(), asyncMiddleware(likeMovies));
+
 router.get('/', asyncMiddleware(getAllMovies));
 router.get('/categories', jwtAuthMiddleware(), asyncMiddleware(getMoviesByLikedCategories));
 router.get('/recommended', jwtAuthMiddleware(), asyncMiddleware(getRecomendedMovies));
@@ -15,7 +18,6 @@ router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateMovi
 router.get('/:id', asyncMiddleware(getMovieById));
 router.delete('/:id', asyncMiddleware(deleteMovie));
 router.get('/categories/:categoryId', asyncMiddleware(getMoviesByCategory));
-router.post('/:movieId/like', asyncMiddleware(likeMovie));
 
 
 async function getAllMovies(req, res) {
@@ -81,6 +83,12 @@ async function likeMovie(req, res) {
   const { body: { userId }, params: { movieId } } = req;
   await MovieRepository.likeMovie(userId, movieId);
   return res.json({ message: 'Movie liked' });
+}
+
+async function likeMovies(req, res) {
+  const { body: { userId }, body: { movieIds } } = req;
+  await MovieRepository.likeMovies(userId, movieIds);
+  return res.json({ message: 'Movies liked' });
 }
 
 async function getRecomendedMovies(req, res) {
