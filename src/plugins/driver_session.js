@@ -46,7 +46,7 @@ function defaultRun(session, isSingle, run) {
         await cacheClient.del(...removeCacheKey);
       }
     }
-    if (!cacheKey) {
+    if (!cacheKey || process.env.USE_CACHE === 'false') {
       let result = await run.apply(session, [query]).then(parser.parse);
       result = result && isSingle ? result[0] : result;
       return result;
