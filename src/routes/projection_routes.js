@@ -55,14 +55,14 @@ async function deleteProjection(req, res) {
 }
 
 async function makeReservation(req, res) {
-  const { body: { userId, seatNumber }, params: { projectionId } } = req;
-  await ProjectionRepository.makeReservation(userId, seatNumber, projectionId);
+  const { body: { userId, seatNumbers }, params: { projectionId } } = req;
+  await ProjectionRepository.makeReservation(userId, seatNumbers, projectionId);
   return res.json({ message: 'Reservation was made' });
 }
 
 async function checkReservation(req, res) {
-  const { body: { seatNumber }, params: { projectionId } } = req;
-  const reservation = await ProjectionRepository.checkReservation(seatNumber, projectionId);
+  const { params: { projectionId } } = req;
+  const reservation = await ProjectionRepository.getResetvations(projectionId);
   return res.json({ reservation });
 }
 
