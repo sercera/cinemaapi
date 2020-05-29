@@ -18,6 +18,13 @@ class ProjectionRepository extends BaseRepository {
     return formatedProjections;
   }
 
+  async getById(projectionId) {
+    const response = await mainSession.runOne(`MATCH (projection:Projection)-[:IS_STREAMING]->(movie:Movie) WHERE ID(projection)=${projectionId} return projection, movie`);
+    const { projection } = response;
+    projection.movie = response.movie;
+    return projection;
+  }
+
   getAllCinemasForProjection(name) {
     return mainSession
       .run(`MATCH (p {name : "${name}"})-[PLAYED_AT]->(c)
@@ -64,16 +71,17 @@ class ProjectionRepository extends BaseRepository {
     DETACH DELETE p`, { removeCacheKey: this.name });
   }
 
-  makeReservation(userId, seatNumber, projectionId) {
+  makeReservation(userId, seatNumbers, projectionId) {
+    const seatsCount = seatNumbers.length;
     return mainSession
-      .run(`MATCH (p: Projection), (u: User) WHERE ID(p) = ${projectionId} AND ID(u) = ${userId} CREATE (u)-[r:MAKE_RESERVATION {seat: "${seatNumber}"}]->(p)
-      SET p += { seatsAvailable: TOINT(p.seatsAvailable)-1 }
+      .run(`MATCH (p: Projection), (u: User) WHERE ID(p) = ${projectionId} AND ID(u) = ${userId} CREATE (u)-[r:MAKE_RESERVATION {seats: "${seatNumbers}"}]->(p)
+      SET p += { seatsAvailable: TOINT(p.seatsAvailable)-${seatsCount} }
        return r`);
   }
 
   getResetvations(projectionId) {
     return mainSession
-      .run(`MATCH (p: Projection) , (u: User)-[link: MAKE_RESERVATION]->(p) WHERE ID(p) = ${projectionId} AND exists(link.seat)
+      .run(`MATCH (p: Projection) , (u: User)-[link: MAKE_RESERVATION]->(p) WHERE ID(p) = ${projectionId} AND exists(link.seats)
     return p
     `);
   }

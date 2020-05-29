@@ -3,6 +3,7 @@ const CategoryRepository = require('./category');
 const CinemaRepository = require('./cinema');
 const CommentRepository = require('./comment');
 const MovieRepository = require('./movie');
+const NotificationRepository = require('./notification');
 const ProjectionRepository = require('./projection');
 const UserRepository = require('./user');
 
@@ -12,6 +13,7 @@ module.exports = {
   CinemaRepository,
   CommentRepository,
   MovieRepository,
+  NotificationRepository,
   ProjectionRepository,
   UserRepository,
 };

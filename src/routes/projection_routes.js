@@ -14,11 +14,18 @@ router.post('/cinemas/:cinemaId', asyncMiddleware(addProjection));
 router.post('/:projectionId/reservations', asyncMiddleware(makeReservation));
 router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
 router.delete('/reservations/:reservationId', asyncMiddleware(cancelReservation));
+router.get('/:id', asyncMiddleware(getById));
 
 
 async function getAll(req, res) {
   const projections = await ProjectionRepository.getAll();
   return res.json({ projections });
+}
+
+async function getById(req, res) {
+  const { id } = req.params;
+  const projection = await ProjectionRepository.getById(id);
+  return res.json(projection);
 }
 
 async function getAllCinemasForProjection(req, res) {

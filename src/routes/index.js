@@ -8,6 +8,7 @@ const categoryRoutes = require('./category_routes');
 const actorRoutes = require('./actor_routes');
 const cinemaRoutes = require('./cinema_routes');
 const projectionRoutes = require('./projection_routes');
+const notificationRoutes = require('./notification');
 
 router.use('/auth', authRoutes);
 
@@ -17,5 +18,6 @@ router.use('/cinemas', cinemaRoutes);
 router.use('/users', userRoutes);
 router.use('/movies', movieRoutes);
 router.use('/projections', projectionRoutes);
+router.use('/notifications', notificationRoutes);
 
 module.exports = router;
