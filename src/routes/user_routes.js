@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const { UserRepository } = require('../database/repositories');
-const { asyncMiddleware, imageUploadMiddleware } = require('../middlewares');
+const { asyncMiddleware, imageUploadMiddleware, jwtAuthMiddleware } = require('../middlewares');
 
 
 router.get('/managers', asyncMiddleware(getAllManagers));
@@ -10,6 +10,7 @@ router.get('/managers/:cinemaId', asyncMiddleware(getManagersByCinema));
 router.post('/managers', imageUploadMiddleware('imageUrl'), asyncMiddleware(createManager));
 
 router.get('/', asyncMiddleware(getAllUsers));
+router.get('/current', jwtAuthMiddleware(), asyncMiddleware(getCurrentUser));
 router.get('/:id', asyncMiddleware(getUserById));
 router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateUser));
 router.delete('/:id', asyncMiddleware(deleteUser));
@@ -18,6 +19,10 @@ router.delete('/:id', asyncMiddleware(deleteUser));
 async function getAllUsers(req, res) {
   const users = await UserRepository.getAll();
   return res.json(users);
+}
+
+async function getCurrentUser(req, res) {
+  return res.json(req.user);
 }
 
 async function getAllManagers(req, res) {

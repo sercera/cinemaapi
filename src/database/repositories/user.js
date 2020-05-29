@@ -35,6 +35,13 @@ class UserRepository extends BaseRepository {
       .then((users) => users.map((user) => this.userWithoutPassword(user)));
   }
 
+  async getById(id) {
+    const getOptions = this.cacheGetOptions();
+    return mainSession
+      .runOne(`MATCH (obj: ${this.name}) WHERE ID(obj) = ${id} return obj`, getOptions)
+      .then((user) => this.userWithoutPassword(user));
+  }
+
   async getAllManagers() {
     return mainSession.run(
       `MATCH (u:User {roles:["${USER_ROLES.MANAGER}"]}) RETURN u`,

@@ -6,10 +6,10 @@ const { asyncMiddleware, jwtAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAllCategories));
 router.post('/', asyncMiddleware(createCategory));
-router.post('/:id/favorite', jwtAuthMiddleware(), asyncMiddleware(favCategory));
+router.post('/:id/like', jwtAuthMiddleware(), asyncMiddleware(favCategory));
+router.put('/like', jwtAuthMiddleware(), asyncMiddleware(favCategories));
 router.post('/:id', asyncMiddleware(updateCategory));
 router.delete('/:id', asyncMiddleware(deleteCategory));
-
 
 async function getAllCategories(req, res) {
   const { limit, skip, sort } = req.query;
@@ -28,7 +28,6 @@ async function updateCategory(req, res) {
   return res.json(category);
 }
 
-
 async function deleteCategory(req, res) {
   const { id } = req.params;
   const response = await CategoryRepository.deleteById(id);
@@ -36,9 +35,21 @@ async function deleteCategory(req, res) {
 }
 
 async function favCategory(req, res) {
-  const { user: { id: userId }, params: { id: categoryId } } = req;
+  const {
+    user: { id: userId },
+    params: { id: categoryId },
+  } = req;
   await CategoryRepository.likeCategory(userId, categoryId);
-  return res.json(req.user);
+  return res.json({ message: 'Category liked' });
+}
+
+async function favCategories(req, res) {
+  const {
+    user: { id: userId },
+    body: { categoryIds },
+  } = req;
+  await CategoryRepository.likeCategories(userId, categoryIds);
+  return res.json({ message: 'Categories likes' });
 }
 
 module.exports = router;
