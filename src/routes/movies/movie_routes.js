@@ -90,8 +90,8 @@ async function likeMovie(req, res) {
 }
 
 async function likeMovies(req, res) {
-  const { body: { userId }, body: { movieIds } } = req;
-  await MovieRepository.likeMovies(userId, movieIds);
+  const { user: { id }, body: { movieIds } } = req;
+  await MovieRepository.likeMovies(id, movieIds);
   return res.json({ message: 'Movies liked' });
 }
 
