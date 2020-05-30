@@ -16,7 +16,7 @@ router.post('/cinemas/:cinemaId', asyncMiddleware(addProjection));
 router.post('/:projectionId/reservations', jwtAuthMiddleware(), asyncMiddleware(makeReservation));
 router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
 router.get('/reservations', jwtAuthMiddleware(), asyncMiddleware(getMyReservation));
-router.delete('/reservations/:reservationId', asyncMiddleware(cancelReservation));
+router.delete('/reservations/:reservationId', jwtAuthMiddleware(), asyncMiddleware(cancelReservation));
 router.get('/:id', jwtAuthMiddleware(), asyncMiddleware(getById));
 
 
@@ -126,7 +126,9 @@ async function getMyReservation(req, res) {
 }
 
 async function cancelReservation(req, res) {
-  const { reservationId } = req.params;
+  const { id: userId } = req.user;
+  console.log(userId);
+  const { id: reservationId } = await ProjectionRepository.getReservationsForUser(userId);
   // eslint-disable-next-line prefer-const
   let { seatsTaken } = await ProjectionRepository.getProjectionForReservation(reservationId);
   const { seats } = await ProjectionRepository.getReservationById(reservationId);
