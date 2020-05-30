@@ -33,7 +33,12 @@ async function getById(req, res) {
   const comments = await CommentRepository.getAllCommentsForMovie(projection.movie.id);
   const likes = await MovieRepository.getNumberOfLikes(projection.movie.id);
   const liked = await MovieRepository.checkIfUserLikedMovie(projection.movie.id, userId);
-  const { seats } = await ProjectionRepository.getReservationsForUser(userId);
+  const reservation = await ProjectionRepository.getReservationsForUser(userId);
+  let seats = [];
+  if (reservation) {
+    // eslint-disable-next-line prefer-destructuring
+    seats = reservation.seats;
+  }
   projection.movie.actors = actors;
   const formatedComments = [];
   // eslint-disable-next-line no-restricted-syntax
