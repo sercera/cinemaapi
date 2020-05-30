@@ -39,6 +39,7 @@ async function getById(req, res) {
     let obj = {};
     obj = comment.comment;
     obj.user = {
+      id: comment.user.id,
       username: comment.user.username,
       imageUrl: comment.user.imageUrl,
     };
