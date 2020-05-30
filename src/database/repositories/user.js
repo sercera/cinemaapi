@@ -76,13 +76,15 @@ class UserRepository extends BaseRepository {
       .then((users) => users.map((user) => this.userWithoutPassword(user)));
   }
 
-  async register(username, password) {
+  async register(body = {}) {
+    const { username, password } = body;
     let user = await this.getUser({ username });
     if (user) {
       throw new Error('Username already in use');
     }
     const hashPassword = await this.getHashPassword(password);
     const userBody = {
+      ...body,
       username,
       password: hashPassword,
       roles: [USER_ROLES.VISITOR],

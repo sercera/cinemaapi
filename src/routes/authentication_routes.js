@@ -2,16 +2,15 @@ const express = require('express');
 
 const router = express.Router();
 const { UserRepository } = require('../database/repositories');
-const { asyncMiddleware } = require('../middlewares');
+const { asyncMiddleware, imageUploadMiddleware } = require('../middlewares');
 
-router.post('/register', asyncMiddleware(register));
+router.post('/register', imageUploadMiddleware('imageUrl'), asyncMiddleware(register));
 router.post('/login', asyncMiddleware(login));
 
 async function register(req, res) {
-  const { username, password } = req.body;
   let response;
   try {
-    response = await UserRepository.register(username, password);
+    response = await UserRepository.register(req.body);
   } catch (e) {
     return res.status(409).json({
       message: e.message,

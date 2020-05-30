@@ -10,8 +10,8 @@ const { cacheClient } = require('../services/redis');
  *
  * @returns {
     {
-      run:(query:string,options?:{cacheKey:string,removeCacheKey:string[]|string,customKey?:string})=>Promise<any[]>,
-      runOne:(query:string,options?:{cacheKey:string,removeCacheKey:string[]|string,customKey?:string})=>Promise<any>
+      run:(query:string,options?:{cacheKey:string,removeCacheKey:string[]|string,customKey?:string,cacheExp?:number})=>Promise<any[]>,
+      runOne:(query:string,options?:{cacheKey:string,removeCacheKey:string[]|string,customKey?:string,cacheExp?:number})=>Promise<any>
     }
   }
  */
@@ -33,14 +33,8 @@ function defaultRun(isSingle, driver) {
   return async (query, options = {}) => {
     const session = driver.session();
     const {
-      cacheKey, customKey, limit, skip,
+      cacheKey, customKey, cacheExp,
     } = options;
-    if (skip) {
-      query += ` SKIP ${skip}`;
-    }
-    if (limit) {
-      query += ` LIMIT ${limit}`;
-    }
     let { removeCacheKey } = options;
     if (removeCacheKey) {
       if (typeof removeCacheKey === 'string' && customKey) {
@@ -70,6 +64,9 @@ function defaultRun(isSingle, driver) {
     result = result && isSingle ? result[0] : result;
 
     cacheClient.hset(cacheKey, key, JSON.stringify(result));
+    if (cacheExp) {
+      cacheClient.expire(cacheKey, cacheExp);
+    }
     return result;
   };
 }
