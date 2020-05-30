@@ -67,8 +67,15 @@ async function getById(req, res) {
 
 async function getProjectionsForMovie(req, res) {
   const { movieId } = req.params;
-  const projections = await ProjectionRepository.getAllProjectionsForMovie(movieId);
-  return res.json(projections);
+  const dataArray = await ProjectionRepository.getAllProjectionsForMovie(movieId);
+  const allProjections = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const data of dataArray) {
+    const obj = data.projection;
+    obj.movie = data.movie;
+    allProjections.push(obj);
+  }
+  return res.json(allProjections);
 }
 
 async function getAllCinemasForProjection(req, res) {

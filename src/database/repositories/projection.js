@@ -35,7 +35,7 @@ class ProjectionRepository extends BaseRepository {
 
   getAllProjectionsForMovie(movieId) {
     return mainSession
-      .run(`MATCH (p:Projection)-[:IS_STREAMING]->(m:Movie) WHERE ID(m)=${movieId} RETURN p`);
+      .run(`MATCH (p:Projection)-[:IS_STREAMING]->(m:Movie) WHERE ID(m)=${movieId} RETURN {projection: p, movie:m} as data`);
   }
 
   async getAllProjectionsForCinema(cinemaId) {
