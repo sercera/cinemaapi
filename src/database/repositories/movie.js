@@ -2,6 +2,12 @@ const { mainSession } = require('..');
 const { BaseRepository } = require('./base_repo');
 
 class MovieRepository extends BaseRepository {
+  async getAllStreamingMovies() {
+    return mainSession.run(`
+    MATCH (m:Movie)<-[:IS_STREAMING]-()
+    RETURN m`);
+  }
+
   async getAllWithActors(options = {}) {
     const getOptions = this.cacheGetOptions();
     return mainSession
