@@ -1,7 +1,6 @@
 const fs = require('fs');
 const { mainSession } = require('..');
 
-
 class BaseRepository {
   /**
    *
@@ -35,6 +34,14 @@ class BaseRepository {
     const removeOptions = this.cacheRemoveOptions();
     return mainSession
       .runOne(`CREATE (obj: ${this.name} ${this.stringify(body)}) return obj`, removeOptions);
+  }
+
+
+  async createMany(bodies) {
+    const removeOptions = this.cacheRemoveOptions();
+    const query = bodies.map((body, index) => `(obj${index}: ${this.name} ${this.stringify(body)})`).join(', ');
+    return mainSession
+      .run(`CREATE ${query}`, removeOptions);
   }
 
 
@@ -77,7 +84,7 @@ class BaseRepository {
           const jsonData = JSON.parse(data);
           return this.stringify(jsonData);
         } catch (err) {
-          return `"${data}"`;
+          return `"${data.replace(/["\\]/g, (char) => `\\${char}`)}"`;
         }
       case 'object': {
         if (Array.isArray(data)) {

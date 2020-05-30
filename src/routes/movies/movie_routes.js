@@ -10,6 +10,7 @@ router.post('/:movieId/like', jwtAuthMiddleware(), asyncMiddleware(likeMovie));
 router.put('/like', jwtAuthMiddleware(), asyncMiddleware(likeMovies));
 
 router.get('/', asyncMiddleware(getAllMovies));
+router.get('/actors', asyncMiddleware(getAllMoviesWithActors));
 router.get('/categories', jwtAuthMiddleware(), asyncMiddleware(getMoviesByLikedCategories));
 router.get('/recommended', jwtAuthMiddleware(), asyncMiddleware(getRecomendedMovies));
 router.get('/liked', jwtAuthMiddleware(), asyncMiddleware(getLikedMovies));
@@ -24,6 +25,13 @@ async function getAllMovies(req, res) {
   const { skip = 0, limit = 20 } = req.query;
   console.log(skip, limit);
   const movies = await MovieRepository.getAll({ limit, skip });
+  return res.json(movies);
+}
+
+
+async function getAllMoviesWithActors(req, res) {
+  const { skip, limit, sort } = req.query;
+  const movies = await MovieRepository.getAllWithActors({ limit, skip, sort });
   return res.json(movies);
 }
 

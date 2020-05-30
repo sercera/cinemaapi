@@ -13,9 +13,13 @@
     "logs": "echo 'output.log:\\n' && cat ./logs/output.log && echo '\\n\\nerror.log\\n' && cat ./logs/error.log",
     "logs-clear": ":> logs/output.log && :> logs/error.log",
     "lint": "npx eslint src/** index.js --fix",
+    "seed:admin": "node src/database/seeders/admin_seeder.js",
+    "seed:actors": "node src/database/seeders/actor_seeder.js",
+    "seed:movies": "node src/database/seeders/movie_seeder.js",
     "cache:clear": "node src/commands/cache_clear.js"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "bcrypt": "^4.0.1",
     "cors": "2.8.4",
     "dotenv": "^8.2.0",
@@ -26,6 +30,7 @@
     "multer": "^1.4.2",
     "neo4j-driver": "^4.0.2",
     "parse-neo4j": "^0.6.11",
+    "query-string": "^6.12.1",
     "shelljs": "^0.8.4"
   },
   "devDependencies": {
