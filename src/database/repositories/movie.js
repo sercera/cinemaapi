@@ -161,15 +161,15 @@ class MovieRepository extends BaseRepository {
   getRecomended(userId) {
     return mainSession.run(`MATCH (u: User) WHERE ID(u)= ${userId}
     MATCH (u)-[:LIKES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)<-[:IS_STREAMING]-()
-    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title, m.description as description, m.imageUrl AS image, count(*) AS occurence
+    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title, m.description as description, m.imageUrl AS imageUrl, count(*) AS occurence
     ORDER BY occurence DESC
     UNION
     MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(m:Movie)<-[:IS_STREAMING]-()
-    RETURN ID(m) AS id, m.categoryIds AS categories,m.title AS title, m.description as description,m.imageUrl AS image, count(*) AS occurence
+    RETURN ID(m) AS id, m.categoryIds AS categories,m.title AS title, m.description as description,m.imageUrl AS imageUrl, count(*) AS occurence
     ORDER BY occurence DESC
     UNION
     MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(wanted:Movie)<-[:LIKES]-(random2:User)-[:LIKES]->(m:Movie)<-[:IS_STREAMING]-()
-    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title,m.description as description, m.imageUrl AS image, count(*) AS occurence
+    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title,m.description as description, m.imageUrl AS imageUrl, count(*) AS occurence
     ORDER BY occurence DESC
     `, { cacheKey: `movie-recommend-${userId}`, customKey: 'getRecomended', cacheExp: 60 * 10 });
   }
@@ -178,17 +178,17 @@ class MovieRepository extends BaseRepository {
     return mainSession.run(`MATCH (u: User) WHERE ID(u)= ${userId}
     MATCH (u)-[:LIKES]->(c:Category)<-[:BELONGS_TO]-(m:Movie)
     WHERE toLower(toString(m.title)) =~ '.*${searchTerm.toLowerCase()}.*'
-    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title, m.description as description, m.imageUrl AS image, count(*) AS occurence
+    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title, m.description as description, m.imageUrl AS imageUrl, count(*) AS occurence
     ORDER BY occurence DESC
     UNION
     MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(m:Movie)
     WHERE toLower(toString(m.title)) =~ '.*${searchTerm.toLowerCase()}.*'
-    RETURN ID(m) AS id, m.categoryIds AS categories,m.title AS title, m.description as description,m.imageUrl AS image, count(*) AS occurence
+    RETURN ID(m) AS id, m.categoryIds AS categories,m.title AS title, m.description as description,m.imageUrl AS imageUrl, count(*) AS occurence
     ORDER BY occurence DESC
     UNION
     MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(wanted:Movie)<-[:LIKES]-(random2:User)-[:LIKES]->(m:Movie)
     WHERE toLower(toString(m.title)) =~ '.*${searchTerm.toLowerCase()}.*'
-    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title,m.description as description, m.imageUrl AS image, count(*) AS occurence
+    RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title,m.description as description, m.imageUrl AS imageUrl, count(*) AS occurence
     ORDER BY occurence DESC
     `, { cacheKey: `movie-recommend-${userId}`, customKey: 'getRecomended', cacheExp: 60 * 10 });
   }
