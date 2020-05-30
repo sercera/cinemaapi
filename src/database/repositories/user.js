@@ -10,7 +10,7 @@ class UserRepository extends BaseRepository {
       roles, cinemaId, password, ...filtered
     } = body;
     if (password) {
-      const hashedPassword = await hashString(password);
+      const hashedPassword = await this.getHashPassword(password);
       filtered.password = hashedPassword;
     }
     const removeOptions = this.cacheRemoveOptions();
@@ -88,7 +88,7 @@ class UserRepository extends BaseRepository {
     if (user) {
       throw new Error('Username already in use');
     }
-    const hashPassword = await hashString(password);
+    const hashPassword = await this.getHashPassword(password);
     const userBody = {
       username,
       password: hashPassword,
@@ -123,6 +123,10 @@ class UserRepository extends BaseRepository {
     }
     const { password, ...filtered } = user;
     return filtered;
+  }
+
+  async getHashPassword(password) {
+    return hashString(password);
   }
 }
 

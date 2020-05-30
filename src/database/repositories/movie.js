@@ -16,8 +16,16 @@ class MovieRepository extends BaseRepository {
     { data:collect(a), total: cnt, limit: ${limit}, skip: ${skip} } AS movies`);
   }
 
+  async getAllWithActors(options = {}) {
+    const getOptions = this.cacheGetOptions();
+    return mainSession
+      .run(`MATCH (m: ${this.name})<-[:ACTS_IN]-(a:Actor) return m as movie,collect(a) as actors`, { ...getOptions, ...options })
+      .then((response) => response.map(({ movie, actors }) => ({ ...movie, actors })));
+  }
+
   create(movie) {
     const { categoryIds, actorIds } = movie;
+    delete movie.actorIds;
     return mainSession.runOne(
       `CREATE (m: Movie ${this.stringify(movie)})
        ${categoryIds ? `WITH m
@@ -33,6 +41,7 @@ class MovieRepository extends BaseRepository {
 
   async update(id, movie) {
     const { categoryIds, actorIds } = movie;
+    delete movie.actorIds;
     return mainSession.runOne(
       `MATCH (m: ${this.name}) WHERE ID(m) = ${id} 
       SET m += ${this.stringify(movie)}
@@ -43,10 +52,34 @@ class MovieRepository extends BaseRepository {
       MERGE (m)-[:BELONGS_TO]->(c)` : ''}
       ${actorIds ? `WITH m
       MATCH (a: Actor) WHERE ID(a) IN ${this.stringify(actorIds)}
-      MATCH (m)<-[oldAct: ACTS_IN]-(oldA)
+      MATCH (m)<-[oldAct:ACTS_IN]-(oldA)
       DELETE oldAct
-      MERGE (m)<-[: ACTS_IN]-(a)` : ''}
+      MERGE (m)<-[:ACTS_IN]-(a)` : ''}
       RETURN m`,
+      { removeCacheKey: this.name }
+    );
+  }
+
+  createMovieWithActorNames(movie) {
+    const { categoryIds, actorNames } = movie;
+    delete movie.actorNames;
+    let actorQuery = '';
+    if (actorNames) {
+      actorQuery = actorNames.map((actorName, index) => {
+        const actorRef = `a${index}`;
+        return `WITH m
+        MERGE (${actorRef}: Actor ${this.stringify({ name: actorName })})
+        MERGE (m)<-[:ACTS_IN]-(${actorRef})`;
+      }).join(' ');
+    }
+
+    return mainSession.runOne(
+      `CREATE (m: Movie ${this.stringify(movie)})
+       ${categoryIds ? `WITH m
+       MATCH (c: Category) WHERE ID(c) IN ${this.stringify(categoryIds)}
+       MERGE (m)-[:BELONGS_TO]->(c)` : ''}
+       ${actorQuery}
+       RETURN m`,
       { removeCacheKey: this.name }
     );
   }
