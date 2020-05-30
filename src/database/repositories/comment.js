@@ -15,7 +15,7 @@ class CommentRepository extends BaseRepository {
   postComment(text, movieId, userId) {
     return mainSession
       .run(`MATCH (m: Movie), (u: User) WHERE ID(m) = ${movieId} AND ID(u) = ${userId} 
-    CREATE (u)-[r1: WROTE]->(c: Comment {text : "${text}"})-[r: POSTED_ON]->(m) return r1,r`,
+    CREATE (u)-[r1: WROTE]->(c: Comment {text : "${text}"})-[r: POSTED_ON]->(m) return c`,
       { removeCacheKey: this.name, customKey: this.getCustomKey(movieId) });
   }
 

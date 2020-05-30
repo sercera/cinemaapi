@@ -28,8 +28,8 @@ async function getAllCommentsForMovie(req, res) {
 
 async function postComment(req, res) {
   const { body: { text }, params: { movieId }, user: { id: userId } } = req;
-  await CommentRepository.postComment(text, movieId, userId);
-  return res.json({ message: 'Comment posted!' });
+  const comment = await CommentRepository.postComment(text, movieId, userId);
+  return res.json(comment);
 }
 
 async function deleteComment(req, res) {
