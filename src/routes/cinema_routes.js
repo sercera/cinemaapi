@@ -19,7 +19,7 @@ router.post(
 );
 router.put(
   '/:id',
-  roleAuthMiddleware(USER_ROLES.MANAGER),
+  roleAuthMiddleware([USER_ROLES.MANAGER, USER_ROLES.ADMIN]),
   imageUploadMiddleware('imageUrl'),
   asyncMiddleware(updateCinema)
 );
