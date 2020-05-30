@@ -18,6 +18,19 @@ class ProjectionRepository extends BaseRepository {
     return formatedProjections;
   }
 
+  async createProjection(movieId, cinemaId, projBody) {
+    return mainSession.runOne(`
+    MATCH (m:Movie) WHERE ID(m) = ${movieId}
+    WITH m
+    MATCH (c:Cinema) WHERE ID(c) = ${cinemaId}
+    WITH m,c
+    CREATE (p:Projection ${this.stringify(projBody)})
+    WITH m,c,p
+    CREATE (c)<-[:PLAYED_AT]-(p)-[:IS_STREAMING]->(m)
+    RETURN p
+    `);
+  }
+
   async getById(projectionId) {
     const response = await mainSession.runOne(`MATCH (cinema:Cinema)<-[:PLAYED_AT]-(projection:Projection)-[:IS_STREAMING]->(movie:Movie) WHERE ID(projection)=${projectionId} return projection,movie,cinema`);
     const { projection } = response;
