@@ -75,6 +75,7 @@ async function getProjectionsForMovie(req, res) {
   for (const data of dataArray) {
     const obj = data.projection;
     obj.movie = data.movie;
+    obj.cinema = data.cinema;
     allProjections.push(obj);
   }
   return res.json(allProjections);
@@ -114,7 +115,7 @@ async function deleteProjection(req, res) {
 
 async function makeReservation(req, res) {
   const { user: { id: userId }, body: { seatNumbers }, params: { projectionId } } = req;
-  const { seatsTaken } = await ProjectionRepository.getById(projectionId);
+  const { seatsTaken = [] } = await ProjectionRepository.getById(projectionId);
   let seatTaken = false;
   // eslint-disable-next-line no-restricted-syntax
   for (const seat of seatNumbers) {
