@@ -7,7 +7,7 @@ const {
 const { asyncMiddleware, jwtAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
-router.delete('/reservations', jwtAuthMiddleware(), asyncMiddleware(cancelReservation));
+router.delete('/:projectionId/reservations', jwtAuthMiddleware(), asyncMiddleware(cancelReservation));
 router.delete('/:projectionId', asyncMiddleware(deleteProjection));
 
 router.get('/cinemas', asyncMiddleware(getAllCinemasForProjection));
@@ -33,7 +33,7 @@ async function getById(req, res) {
   const comments = await CommentRepository.getAllCommentsForMovie(projection.movie.id);
   const likes = await MovieRepository.getNumberOfLikes(projection.movie.id);
   const liked = await MovieRepository.checkIfUserLikedMovie(projection.movie.id, userId);
-  const reservation = await ProjectionRepository.getReservationsForUser(userId);
+  const reservation = await ProjectionRepository.getReservationsForUserAndProjection(userId, projection.id);
   let seats = [];
   if (reservation) {
     // eslint-disable-next-line prefer-destructuring
@@ -127,8 +127,8 @@ async function getMyReservation(req, res) {
 
 async function cancelReservation(req, res) {
   const { id: userId } = req.user;
-  console.log(userId);
-  const { id: reservationId } = await ProjectionRepository.getReservationsForUser(userId);
+  const { projectionId } = req.params;
+  const { id: reservationId } = await ProjectionRepository.getReservationsForUserAndProjection(userId, projectionId);
   // eslint-disable-next-line prefer-const
   let { seatsTaken } = await ProjectionRepository.getProjectionForReservation(reservationId);
   const { seats } = await ProjectionRepository.getReservationById(reservationId);

@@ -98,6 +98,13 @@ class ProjectionRepository extends BaseRepository {
       `);
   }
 
+  getReservationsForUserAndProjection(userId, projectionId) {
+    return mainSession
+      .runOne(`
+        MATCH (u:User)-[r:MAKE_RESERVATION]->(p:Projection) WHERE ID(u)=${userId} AND ID(p)=${projectionId} return r
+      `);
+  }
+
   getProjectionForReservation(reservationId) {
     return mainSession.runOne(`MATCH (u:User)-[r:MAKE_RESERVATION]->(p:Projection) WHERE ID(r)=${reservationId} return p`);
   }
