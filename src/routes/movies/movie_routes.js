@@ -114,7 +114,7 @@ async function getRecomendedMovies(req, res) {
       allMovies.push(movie);
     }
   }
-  if (allMovies.length < 20) {
+  if (allMovies.length < 28) {
     const randomMovies = await MovieRepository.getAllStreamingMovies();
     for (const movie of randomMovies) {
       if (!allMovies.some((recMovies) => recMovies.id === movie.id) && allMovies.length < 28) {
