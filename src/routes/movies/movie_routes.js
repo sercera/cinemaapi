@@ -47,12 +47,14 @@ async function getMoviesByLikedCategories(req, res) {
   const movies = await MovieRepository.getByLikedCategories(userId);
   const allMovies = [];
   for (const movie of movies) {
-    allMovies.push(movie.movie);
+    if (allMovies.length < 30) {
+      allMovies.push(movie.movie);
+    }
   }
-  if (allMovies.length < 20) {
-    const randomMovies = await MovieRepository.getAll({ limit: 20 });
+  if (allMovies.length < 30) {
+    const randomMovies = await MovieRepository.getAll({ limit: 30 });
     for (const movie of randomMovies) {
-      if (allMovies.filter((e) => e.id === movie.id).length === 0 && allMovies.length < 20) {
+      if (allMovies.filter((e) => e.id === movie.id).length === 0 && allMovies.length < 30) {
         allMovies.push(movie);
       }
     }
