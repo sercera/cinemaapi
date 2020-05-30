@@ -2,22 +2,26 @@
 const express = require('express');
 
 const router = express.Router();
+
+
+const { USER_ROLES } = require('../../constants/user_roles');
+
 const { MovieRepository } = require('../../database/repositories');
-const { asyncMiddleware, imageUploadMiddleware, jwtAuthMiddleware } = require('../../middlewares');
+const { asyncMiddleware, imageUploadMiddleware, roleAuthMiddleware } = require('../../middlewares');
 
 
-router.post('/:movieId/like', jwtAuthMiddleware(), asyncMiddleware(likeMovie));
-router.put('/like', jwtAuthMiddleware(), asyncMiddleware(likeMovies));
+router.post('/:movieId/like', asyncMiddleware(likeMovie));
+router.put('/like', asyncMiddleware(likeMovies));
 
 router.get('/', asyncMiddleware(getAllMovies));
 router.get('/actors', asyncMiddleware(getAllMoviesWithActors));
-router.get('/categories', jwtAuthMiddleware(), asyncMiddleware(getMoviesByLikedCategories));
-router.get('/recommended', jwtAuthMiddleware(), asyncMiddleware(getRecomendedMovies));
-router.get('/liked', jwtAuthMiddleware(), asyncMiddleware(getLikedMovies));
-router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createMovie));
-router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateMovie));
+router.get('/categories', asyncMiddleware(getMoviesByLikedCategories));
+router.get('/recommended', asyncMiddleware(getRecomendedMovies));
+router.get('/liked', asyncMiddleware(getLikedMovies));
+router.post('/', roleAuthMiddleware(USER_ROLES.ADMIN), imageUploadMiddleware('imageUrl'), asyncMiddleware(createMovie));
+router.put('/:id', roleAuthMiddleware(USER_ROLES.ADMIN), imageUploadMiddleware('imageUrl'), asyncMiddleware(updateMovie));
 router.get('/:id', asyncMiddleware(getMovieById));
-router.delete('/:id', asyncMiddleware(deleteMovie));
+router.delete('/:id', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(deleteMovie));
 router.get('/categories/:categoryId', asyncMiddleware(getMoviesByCategory));
 
 

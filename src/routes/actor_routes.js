@@ -2,13 +2,16 @@ const express = require('express');
 
 const router = express.Router();
 const { ActorRepository } = require('../database/repositories');
-const { asyncMiddleware, imageUploadMiddleware } = require('../middlewares');
+
+const { USER_ROLES } = require('../constants/user_roles');
+
+const { asyncMiddleware, imageUploadMiddleware, roleAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
-router.post('/', imageUploadMiddleware('imageUrl'), asyncMiddleware(createActor));
-router.put('/:actorId', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateActor));
+router.post('/', roleAuthMiddleware(USER_ROLES.ADMIN), imageUploadMiddleware('imageUrl'), asyncMiddleware(createActor));
+router.put('/:actorId', roleAuthMiddleware(USER_ROLES.ADMIN), imageUploadMiddleware('imageUrl'), asyncMiddleware(updateActor));
 router.get('/:actorId', asyncMiddleware(getById));
-router.delete('/:actorId', asyncMiddleware(deleteActor));
+router.delete('/:actorId', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(deleteActor));
 
 async function getAll(req, res) {
   const actors = await ActorRepository.getPaginated(req.query);

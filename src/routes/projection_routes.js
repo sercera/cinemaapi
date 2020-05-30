@@ -1,25 +1,27 @@
 const express = require('express');
 
 const router = express.Router();
+
+const { USER_ROLES } = require('../constants/user_roles');
 const {
   ProjectionRepository, ActorRepository, CommentRepository, MovieRepository,
 } = require('../database/repositories');
-const { asyncMiddleware, jwtAuthMiddleware } = require('../middlewares');
+const { asyncMiddleware, roleAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
-router.delete('/:projectionId/reservations', jwtAuthMiddleware(), asyncMiddleware(cancelReservation));
-router.delete('/:projectionId', asyncMiddleware(deleteProjection));
+router.delete('/:projectionId/reservations', asyncMiddleware(cancelReservation));
+router.delete('/:projectionId', roleAuthMiddleware(USER_ROLES.MANAGER), asyncMiddleware(deleteProjection));
 
 router.get('/cinemas', asyncMiddleware(getAllCinemasForProjection));
 router.get('/cinemas/:cinemaId', asyncMiddleware(getAllProjectionsForCinema));
-router.post('/cinemas/:cinemaId', asyncMiddleware(addProjection));
+router.post('/cinemas/:cinemaId', roleAuthMiddleware(USER_ROLES.MANAGER), asyncMiddleware(addProjection));
 
 router.get('/movies/:movieId', asyncMiddleware(getProjectionsForMovie));
 
-router.post('/:projectionId/reservations', jwtAuthMiddleware(), asyncMiddleware(makeReservation));
+router.post('/:projectionId/reservations', asyncMiddleware(makeReservation));
 router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
-router.get('/reservations', jwtAuthMiddleware(), asyncMiddleware(getMyReservation));
-router.get('/:id', jwtAuthMiddleware(), asyncMiddleware(getById));
+router.get('/reservations', asyncMiddleware(getMyReservation));
+router.get('/:id', asyncMiddleware(getById));
 
 
 async function getAll(req, res) {

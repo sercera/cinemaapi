@@ -10,14 +10,16 @@ const cinemaRoutes = require('./cinema_routes');
 const projectionRoutes = require('./projection_routes');
 const notificationRoutes = require('./notification');
 
+const { jwtAuthMiddleware } = require('../middlewares');
+
 router.use('/auth', authRoutes);
 
-router.use('/actors', actorRoutes);
-router.use('/categories', categoryRoutes);
-router.use('/cinemas', cinemaRoutes);
-router.use('/users', userRoutes);
-router.use('/movies', movieRoutes);
-router.use('/projections', projectionRoutes);
-router.use('/notifications', notificationRoutes);
+router.use('/actors', jwtAuthMiddleware(), actorRoutes);
+router.use('/categories', jwtAuthMiddleware(), categoryRoutes);
+router.use('/cinemas', jwtAuthMiddleware(), cinemaRoutes);
+router.use('/users', jwtAuthMiddleware(), userRoutes);
+router.use('/movies', jwtAuthMiddleware(), movieRoutes);
+router.use('/projections', jwtAuthMiddleware(), projectionRoutes);
+router.use('/notifications', jwtAuthMiddleware(), notificationRoutes);
 
 module.exports = router;

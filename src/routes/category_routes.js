@@ -2,15 +2,16 @@ const express = require('express');
 
 const router = express.Router();
 const { CategoryRepository } = require('../database/repositories');
-const { asyncMiddleware, jwtAuthMiddleware } = require('../middlewares');
+const { USER_ROLES } = require('../constants/user_roles');
+const { asyncMiddleware, roleAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAllCategories));
-router.post('/', asyncMiddleware(createCategory));
-router.post('/:id/like', jwtAuthMiddleware(), asyncMiddleware(likeCategory));
-router.put('/like', jwtAuthMiddleware(), asyncMiddleware(changeLikedCategories));
-router.get('/like', jwtAuthMiddleware(), asyncMiddleware(getLikedCategories));
-router.post('/:id', asyncMiddleware(updateCategory));
-router.delete('/:id', asyncMiddleware(deleteCategory));
+router.post('/', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(createCategory));
+router.post('/:id/like', asyncMiddleware(likeCategory));
+router.put('/like', asyncMiddleware(changeLikedCategories));
+router.get('/like', asyncMiddleware(getLikedCategories));
+router.post('/:id', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(updateCategory));
+router.delete('/:id', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(deleteCategory));
 
 async function getAllCategories(req, res) {
   const { limit, skip, sort } = req.query;
