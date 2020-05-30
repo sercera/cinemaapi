@@ -14,6 +14,8 @@ router.get('/cinemas', asyncMiddleware(getAllCinemasForProjection));
 router.get('/cinemas/:cinemaId', asyncMiddleware(getAllProjectionsForCinema));
 router.post('/cinemas/:cinemaId', asyncMiddleware(addProjection));
 
+router.get('/movies/:movieId', asyncMiddleware(getProjectionsForMovie));
+
 router.post('/:projectionId/reservations', jwtAuthMiddleware(), asyncMiddleware(makeReservation));
 router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
 router.get('/reservations', jwtAuthMiddleware(), asyncMiddleware(getMyReservation));
@@ -61,6 +63,12 @@ async function getById(req, res) {
     projection.movie.liekd = false;
   }
   return res.json(projection);
+}
+
+async function getProjectionsForMovie(req, res) {
+  const { movieId } = req.params;
+  const projections = await ProjectionRepository.getAllProjectionsForMovie(movieId);
+  return res.json(projections);
 }
 
 async function getAllCinemasForProjection(req, res) {
