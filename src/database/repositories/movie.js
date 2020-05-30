@@ -66,7 +66,7 @@ class MovieRepository extends BaseRepository {
     }
 
     return mainSession.runOne(
-      `CREATE (m: Movie ${this.stringify(movie)})
+      `MERGE (m: Movie ${this.stringify(movie)})
        ${categoryIds ? `WITH m
        MATCH (c: Category) WHERE ID(c) IN ${this.stringify(categoryIds)}
        MERGE (m)-[:BELONGS_TO]->(c)` : ''}

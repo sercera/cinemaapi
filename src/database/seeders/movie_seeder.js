@@ -17,7 +17,7 @@ const { TMDB_API_KEY, OMDB_API_KEY } = require('../../config/api_keys');
 (async () => {
   try {
     let moviesCount = 0;
-    const MOVIE_LIMIT = 100;
+    const MOVIE_LIMIT = 500;
     let page = 1;
     while (moviesCount < MOVIE_LIMIT) {
       const { data: { results, page: currentPage } } = await axios.get(`${TMDB_API_URL}/3/movie/popular?api_key=${TMDB_API_KEY}&page=${page}`);
