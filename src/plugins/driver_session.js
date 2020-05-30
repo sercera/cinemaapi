@@ -66,6 +66,9 @@ function defaultRun(isSingle, driver) {
     cacheClient.hset(cacheKey, key, JSON.stringify(result));
     if (cacheExp) {
       cacheClient.expire(cacheKey, cacheExp);
+    } else {
+      // Expire after 2 days
+      cacheClient.expire(cacheKey, 60 * 60 * 24 * 2);
     }
     return result;
   };
