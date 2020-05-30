@@ -3,18 +3,34 @@ const express = require('express');
 const router = express.Router();
 
 const { USER_ROLES } = require('../constants/user_roles');
+const { sendEmail } = require('../services/email');
 const {
-  ProjectionRepository, ActorRepository, CommentRepository, MovieRepository,
+  ProjectionRepository,
+  ActorRepository,
+  CommentRepository,
+  MovieRepository,
+  NotificationRepository,
 } = require('../database/repositories');
 const { asyncMiddleware, roleAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAll));
-router.delete('/:projectionId/reservations', asyncMiddleware(cancelReservation));
-router.delete('/:projectionId', roleAuthMiddleware(USER_ROLES.MANAGER), asyncMiddleware(deleteProjection));
+router.delete(
+  '/:projectionId/reservations',
+  asyncMiddleware(cancelReservation)
+);
+router.delete(
+  '/:projectionId',
+  roleAuthMiddleware(USER_ROLES.MANAGER),
+  asyncMiddleware(deleteProjection)
+);
 
 router.get('/cinemas', asyncMiddleware(getAllCinemasForProjection));
 router.get('/cinemas/:cinemaId', asyncMiddleware(getAllProjectionsForCinema));
-router.post('/cinemas/:cinemaId', roleAuthMiddleware(USER_ROLES.MANAGER), asyncMiddleware(addProjection));
+router.post(
+  '/cinemas/:cinemaId',
+  roleAuthMiddleware(USER_ROLES.MANAGER),
+  asyncMiddleware(addProjection)
+);
 
 router.get('/movies/:movieId', asyncMiddleware(getProjectionsForMovie));
 
@@ -22,7 +38,6 @@ router.post('/:projectionId/reservations', asyncMiddleware(makeReservation));
 router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
 router.get('/reservations', asyncMiddleware(getMyReservation));
 router.get('/:id', asyncMiddleware(getById));
-
 
 async function getAll(req, res) {
   const projections = await ProjectionRepository.getAll();
@@ -34,10 +49,18 @@ async function getById(req, res) {
   const { id: userId } = req.user;
   const projection = await ProjectionRepository.getById(id);
   const actors = await ActorRepository.getActorsForMovie(projection.movie.id);
-  const comments = await CommentRepository.getAllCommentsForMovie(projection.movie.id);
+  const comments = await CommentRepository.getAllCommentsForMovie(
+    projection.movie.id
+  );
   const likes = await MovieRepository.getNumberOfLikes(projection.movie.id);
-  const liked = await MovieRepository.checkIfUserLikedMovie(projection.movie.id, userId);
-  const reservation = await ProjectionRepository.getReservationsForUserAndProjection(userId, projection.id);
+  const liked = await MovieRepository.checkIfUserLikedMovie(
+    projection.movie.id,
+    userId
+  );
+  const reservation = await ProjectionRepository.getReservationsForUserAndProjection(
+    userId,
+    projection.id
+  );
   let seats = [];
   if (reservation) {
     // eslint-disable-next-line prefer-destructuring
@@ -69,7 +92,9 @@ async function getById(req, res) {
 
 async function getProjectionsForMovie(req, res) {
   const { movieId } = req.params;
-  const dataArray = await ProjectionRepository.getAllProjectionsForMovie(movieId);
+  const dataArray = await ProjectionRepository.getAllProjectionsForMovie(
+    movieId
+  );
   const allProjections = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const data of dataArray) {
@@ -114,8 +139,14 @@ async function deleteProjection(req, res) {
 }
 
 async function makeReservation(req, res) {
-  const { user: { id: userId }, body: { seatNumbers }, params: { projectionId } } = req;
-  const { seatsTaken = [] } = await ProjectionRepository.getById(projectionId);
+  const {
+    user: { id: userId },
+    body: { seatNumbers },
+    params: { projectionId },
+  } = req;
+  const { seatsTaken = [], movie, cinema } = await ProjectionRepository.getById(
+    projectionId
+  );
   let seatTaken = false;
   // eslint-disable-next-line no-restricted-syntax
   for (const seat of seatNumbers) {
@@ -123,17 +154,38 @@ async function makeReservation(req, res) {
       seatTaken = true;
     }
   }
-  if (!seatTaken) {
-    const totalSeatsTaken = seatsTaken.concat(seatNumbers);
-    const reservation = await ProjectionRepository.makeReservation(userId, seatNumbers, totalSeatsTaken, projectionId);
-    return res.json(reservation);
+  if (seatTaken) {
+    return res.json({ message: 'Seat taken' });
   }
-  return res.json({ message: 'Seat taken' });
+  const totalSeatsTaken = seatsTaken.concat(seatNumbers);
+  const reservation = await ProjectionRepository.makeReservation(
+    userId,
+    seatNumbers,
+    totalSeatsTaken,
+    projectionId
+  );
+
+  sendEmail(
+    req.user.email,
+    'Uspesna rezervacija!',
+    `<html><body>Pozdrav, </br></br>
+  Uspesno ste rezervisali film "${movie.title}" u bioskopu "${
+  cinema.name
+}" </br></br>
+  Rezervisali ste mesta: ${seatNumbers.join(', ')}.</br></br>
+  Vidimo se!</body></html>`
+  );
+  NotificationRepository.create(userId, `Uspesna rezervacija za ${movie.title}!`, `/projections/${projectionId}`);
+  return res.json(reservation);
 }
 
 async function checkReservation(req, res) {
-  const { params: { projectionId } } = req;
-  const reservation = await ProjectionRepository.getReservationsForProjection(projectionId);
+  const {
+    params: { projectionId },
+  } = req;
+  const reservation = await ProjectionRepository.getReservationsForProjection(
+    projectionId
+  );
   return res.json({ reservation });
 }
 
@@ -146,10 +198,19 @@ async function getMyReservation(req, res) {
 async function cancelReservation(req, res) {
   const { id: userId } = req.user;
   const { projectionId } = req.params;
-  const { id: reservationId } = await ProjectionRepository.getReservationsForUserAndProjection(userId, projectionId);
+  const {
+    id: reservationId,
+  } = await ProjectionRepository.getReservationsForUserAndProjection(
+    userId,
+    projectionId
+  );
   // eslint-disable-next-line prefer-const
-  let { seatsTaken } = await ProjectionRepository.getProjectionForReservation(reservationId);
-  const { seats } = await ProjectionRepository.getReservationById(reservationId);
+  let { seatsTaken } = await ProjectionRepository.getProjectionForReservation(
+    reservationId
+  );
+  const { seats } = await ProjectionRepository.getReservationById(
+    reservationId
+  );
   // eslint-disable-next-line no-restricted-syntax
   for (const seat of seats) {
     const index = seatsTaken.indexOf(seat);
@@ -158,6 +219,8 @@ async function cancelReservation(req, res) {
     }
   }
   await ProjectionRepository.cancelReservation(reservationId, seatsTaken);
+
+  NotificationRepository.create(userId, 'Uspesno otkazana rezervacija!', `/projections/${projectionId}`);
   return res.json({ message: 'Reservation canceled' });
 }
 

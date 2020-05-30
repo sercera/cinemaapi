@@ -16,6 +16,7 @@
     "seed:admin": "node src/database/seeders/admin_seeder.js",
     "seed:actors": "node src/database/seeders/actor_seeder.js",
     "seed:movies": "node src/database/seeders/movie_seeder.js",
+    "seed:actor-images": "node src/database/seeders/actor_images_seeder.js",
     "seed:projections": "node src/database/seeders/projection_seeder.js",
     "cache:clear": "node src/commands/cache_clear.js"
   },
