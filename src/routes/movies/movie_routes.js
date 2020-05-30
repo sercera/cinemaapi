@@ -44,10 +44,10 @@ async function getMoviesByLikedCategories(req, res) {
   for (const movie of movies) {
     allMovies.push(movie.movie);
   }
-  if (allMovies.length < 10) {
+  if (allMovies.length < 20) {
     const randomMovies = await MovieRepository.getAll({ limit: 20 });
     for (const movie of randomMovies) {
-      if (allMovies.filter((e) => e.id === movie.id).length === 0) {
+      if (allMovies.filter((e) => e.id === movie.id).length === 0 && allMovies.length < 20) {
         allMovies.push(movie);
       }
     }
@@ -103,7 +103,19 @@ async function likeMovies(req, res) {
 async function getRecomendedMovies(req, res) {
   const { id } = req.user;
   const movies = await MovieRepository.getRecomended(id);
-  return res.json(movies);
+  const allMovies = [];
+  for (const movie of movies) {
+    allMovies.push(movie.movie);
+  }
+  if (allMovies.length < 20) {
+    const randomMovies = await MovieRepository.getAllStreamingMovies({ limit: 20 });
+    for (const movie of randomMovies) {
+      if (allMovies.filter((e) => e.id === movie.id).length === 0 && allMovies.length < 20) {
+        allMovies.push(movie);
+      }
+    }
+  }
+  return res.json(allMovies);
 }
 
 
