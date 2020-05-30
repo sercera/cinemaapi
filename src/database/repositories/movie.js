@@ -3,9 +3,9 @@ const { BaseRepository } = require('./base_repo');
 
 class MovieRepository extends BaseRepository {
   async getAllStreamingMovies() {
-    return mainSession.run(`
+    return mainSession.runOne(`
     MATCH (m:Movie)<-[:IS_STREAMING]-()
-    RETURN m`);
+    RETURN collect(distinct m)`);
   }
 
   async getAllWithActors(options = {}) {
@@ -171,7 +171,7 @@ class MovieRepository extends BaseRepository {
     MATCH (person: User) WHERE ID(person)= ${userId} MATCH (person)-[:LIKES]->(movie:Movie)<-[:LIKES]-(radnom:User)-[:LIKES]->(wanted:Movie)<-[:LIKES]-(random2:User)-[:LIKES]->(m:Movie)<-[:IS_STREAMING]-()
     RETURN ID(m) AS id, m.categoryIds AS categories, m.title AS title,m.description as description, m.imageUrl AS image, count(*) AS occurence
     ORDER BY occurence DESC
-    `, { cacheKey: `movie-recommend-${userId}`, customKey: 'getRecoomended', cacheExp: 60 * 10 });
+    `, { cacheKey: `movie-recommend-${userId}`, customKey: 'getRecomended', cacheExp: 60 * 10 });
   }
 }
 
