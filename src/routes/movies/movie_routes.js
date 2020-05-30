@@ -21,8 +21,9 @@ router.get('/categories/:categoryId', asyncMiddleware(getMoviesByCategory));
 
 
 async function getAllMovies(req, res) {
-  const { skip, limit, sort } = req.query;
-  const movies = await MovieRepository.getAll({ limit, skip, sort });
+  const { skip = 0, limit = 20 } = req.query;
+  console.log(skip, limit);
+  const movies = await MovieRepository.getAll({ limit, skip });
   return res.json(movies);
 }
 

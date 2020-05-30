@@ -2,6 +2,20 @@ const { mainSession } = require('..');
 const { BaseRepository } = require('./base_repo');
 
 class MovieRepository extends BaseRepository {
+  async getAll(options) {
+    const { limit, skip } = options;
+    return mainSession.runOne(`
+    MATCH 
+    (a:Movie)
+    WITH 
+    count(*) AS cnt
+    MATCH 
+    (a:Movie)
+    WITH a, cnt ORDER BY a.title SKIP ${skip} LIMIT ${limit}
+    RETURN 
+    { data:collect(a), total: cnt, limit: ${limit}, skip: ${skip} } AS movies`);
+  }
+
   create(movie) {
     const { categoryIds, actorIds } = movie;
     return mainSession.runOne(
