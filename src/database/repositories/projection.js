@@ -19,9 +19,10 @@ class ProjectionRepository extends BaseRepository {
   }
 
   async getById(projectionId) {
-    const response = await mainSession.runOne(`MATCH (projection:Projection)-[:IS_STREAMING]->(movie:Movie) WHERE ID(projection)=${projectionId} return projection,movie`);
+    const response = await mainSession.runOne(`MATCH (cinema:Cinema)<-[:PLAYED_AT]-(projection:Projection)-[:IS_STREAMING]->(movie:Movie) WHERE ID(projection)=${projectionId} return projection,movie,cinema`);
     const { projection } = response;
     projection.movie = response.movie;
+    projection.cinema = response.cinema;
     return projection;
   }
 
