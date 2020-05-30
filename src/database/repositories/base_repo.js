@@ -29,7 +29,7 @@ class BaseRepository {
     const orderQuery = orderBy ? `ORDER BY obj.${orderBy} ${orderDir.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'}` : '';
     let likeQuery = '';
     if (searchTermProp) {
-      likeQuery = searchTerm ? `WHERE toLower(obj.${searchTermProp}) =~ '.*${searchTerm.toLowerCase()}.*'` : '';
+      likeQuery = searchTerm ? `WHERE toLower(toString(obj.${searchTermProp})) =~ '.*${searchTerm.toLowerCase()}.*'` : '';
     }
     return mainSession.runOne(
       `MATCH (obj:${this.name} ${objectQuery}) ${likeQuery}
