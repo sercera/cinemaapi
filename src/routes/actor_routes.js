@@ -11,8 +11,7 @@ router.get('/:actorId', asyncMiddleware(getById));
 router.delete('/:actorId', asyncMiddleware(deleteActor));
 
 async function getAll(req, res) {
-  const { skip = 0, limit = 20 } = req.query;
-  const actors = await ActorRepository.getAll({ limit, skip });
+  const actors = await ActorRepository.getPaginated(req.query);
   return res.json(actors);
 }
 

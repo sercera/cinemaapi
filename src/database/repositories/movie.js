@@ -2,20 +2,6 @@ const { mainSession } = require('..');
 const { BaseRepository } = require('./base_repo');
 
 class MovieRepository extends BaseRepository {
-  async getAll(options) {
-    const { limit, skip } = options;
-    return mainSession.runOne(`
-    MATCH 
-    (a:Movie)
-    WITH 
-    count(*) AS cnt
-    MATCH 
-    (a:Movie)
-    WITH a, cnt ORDER BY a.title SKIP ${skip} LIMIT ${limit}
-    RETURN 
-    { data:collect(a), total: cnt, limit: ${limit}, skip: ${skip} } AS movies`);
-  }
-
   async getAllWithActors(options = {}) {
     const getOptions = this.cacheGetOptions();
     return mainSession
@@ -186,4 +172,5 @@ class MovieRepository extends BaseRepository {
 module.exports = new MovieRepository('Movie', {
   cache: true,
   imageProperty: 'imageUrl',
+  searchTermProp: 'title',
 });

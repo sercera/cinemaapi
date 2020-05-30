@@ -17,7 +17,7 @@ router.delete('/:id', asyncMiddleware(deleteUser));
 
 
 async function getAllUsers(req, res) {
-  const users = await UserRepository.getAll();
+  const users = await UserRepository.getAll(req.query);
   return res.json(users);
 }
 
@@ -26,7 +26,7 @@ async function getCurrentUser(req, res) {
 }
 
 async function getAllManagers(req, res) {
-  const users = await UserRepository.getAllManagers();
+  const users = await UserRepository.getAllManagers(req.query);
   return res.json(users);
 }
 

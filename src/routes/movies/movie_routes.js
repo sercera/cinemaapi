@@ -22,16 +22,12 @@ router.get('/categories/:categoryId', asyncMiddleware(getMoviesByCategory));
 
 
 async function getAllMovies(req, res) {
-  const { skip = 0, limit = 20 } = req.query;
-  console.log(skip, limit);
-  const movies = await MovieRepository.getAll({ limit, skip });
+  const movies = await MovieRepository.getPaginated(req.query);
   return res.json(movies);
 }
 
-
 async function getAllMoviesWithActors(req, res) {
-  const { skip, limit, sort } = req.query;
-  const movies = await MovieRepository.getAllWithActors({ limit, skip, sort });
+  const movies = await MovieRepository.getAllWithActors(req.query);
   return res.json(movies);
 }
 

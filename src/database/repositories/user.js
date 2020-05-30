@@ -25,14 +25,9 @@ class UserRepository extends BaseRepository {
       .then((user) => this.userWithoutPassword(user));
   }
 
-  async getAll(options = {}) {
-    const getOptions = this.cacheGetOptions();
-    return mainSession
-      .run(`MATCH (obj: ${this.name}) return obj`, {
-        ...getOptions,
-        ...options,
-      })
-      .then((users) => users.map((user) => this.userWithoutPassword(user)));
+  async getAll(queryOptions) {
+    return this.getPaginated(queryOptions)
+      .then((response) => ({ ...response, data: response.data.map((user) => this.userWithoutPassword(user)) }));
   }
 
   async getById(id) {
@@ -42,12 +37,10 @@ class UserRepository extends BaseRepository {
       .then((user) => this.userWithoutPassword(user));
   }
 
-  async getAllManagers() {
-    return mainSession.run(
-      `MATCH (u:User {roles:["${USER_ROLES.MANAGER}"]}) RETURN u`,
-      { cacheKey: this.name }
-    )
-      .then((users) => users.map((user) => this.userWithoutPassword(user)));
+  async getAllManagers({ skip = 0, limit = 15 } = {}) {
+    const managerQuery = { roles: [USER_ROLES.MANAGER] };
+    return this.getPaginated({ skip, limit, queryBody: managerQuery })
+      .then((response) => ({ ...response, data: response.data.map((user) => this.userWithoutPassword(user)) }));
   }
 
   async getUser(searchBody, getPassword = false) {
