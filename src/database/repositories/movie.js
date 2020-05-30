@@ -5,6 +5,7 @@ class MovieRepository extends BaseRepository {
   async getAllStreamingMovies() {
     return mainSession.runOne(`
     MATCH (m:Movie)<-[:IS_STREAMING]-()
+    WITH m, rand() AS number ORDER BY number
     RETURN collect(distinct m)`);
   }
 
