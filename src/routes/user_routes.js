@@ -1,19 +1,23 @@
 const express = require('express');
 
 const router = express.Router();
+
+const { USER_ROLES } = require('../constants/user_roles');
 const { UserRepository } = require('../database/repositories');
-const { asyncMiddleware, imageUploadMiddleware, jwtAuthMiddleware } = require('../middlewares');
+const {
+  asyncMiddleware, imageUploadMiddleware, roleAuthMiddleware,
+} = require('../middlewares');
 
 
-router.get('/managers', asyncMiddleware(getAllManagers));
-router.get('/managers/:cinemaId', asyncMiddleware(getManagersByCinema));
-router.post('/managers', imageUploadMiddleware('imageUrl'), asyncMiddleware(createManager));
+router.get('/managers', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(getAllManagers));
+router.get('/managers/:cinemaId', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(getManagersByCinema));
+router.post('/managers', roleAuthMiddleware(USER_ROLES.ADMIN), imageUploadMiddleware('imageUrl'), asyncMiddleware(createManager));
 
-router.get('/', asyncMiddleware(getAllUsers));
-router.get('/current', jwtAuthMiddleware(), asyncMiddleware(getCurrentUser));
+router.get('/', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(getAllUsers));
+router.get('/current', asyncMiddleware(getCurrentUser));
 router.get('/:id', asyncMiddleware(getUserById));
 router.put('/:id', imageUploadMiddleware('imageUrl'), asyncMiddleware(updateUser));
-router.delete('/:id', asyncMiddleware(deleteUser));
+router.delete('/:id', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(deleteUser));
 
 
 async function getAllUsers(req, res) {

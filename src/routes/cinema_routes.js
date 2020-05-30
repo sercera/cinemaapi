@@ -5,21 +5,25 @@ const {
   CinemaRepository,
   ProjectionRepository,
 } = require('../database/repositories');
-const { asyncMiddleware, imageUploadMiddleware } = require('../middlewares');
+
+const { USER_ROLES } = require('../constants/user_roles');
+const { asyncMiddleware, imageUploadMiddleware, roleAuthMiddleware } = require('../middlewares');
 
 router.get('/', asyncMiddleware(getAllCinemas));
 router.get('/:id', asyncMiddleware(getCinema));
 router.post(
   '/',
+  roleAuthMiddleware(USER_ROLES.ADMIN),
   imageUploadMiddleware('imageUrl'),
   asyncMiddleware(createCinema)
 );
 router.put(
   '/:id',
+  roleAuthMiddleware(USER_ROLES.MANAGER),
   imageUploadMiddleware('imageUrl'),
   asyncMiddleware(updateCinema)
 );
-router.delete('/:id', asyncMiddleware(deleteCinema));
+router.delete('/:id', roleAuthMiddleware(USER_ROLES.ADMIN), asyncMiddleware(deleteCinema));
 
 async function getAllCinemas(req, res) {
   const { limit, skip, sort } = req.query;

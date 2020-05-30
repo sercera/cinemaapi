@@ -2,12 +2,12 @@ const express = require('express');
 
 const router = express.Router();
 const { CommentRepository } = require('../../database/repositories');
-const { asyncMiddleware, jwtAuthMiddleware } = require('../../middlewares');
+const { asyncMiddleware } = require('../../middlewares');
 const { USER_ROLES } = require('../../constants/user_roles');
 
 router.get('/:movieId/comments', asyncMiddleware(getAllCommentsForMovie));
-router.post('/:movieId/comments', jwtAuthMiddleware(), asyncMiddleware(postComment));
-router.delete('/:movieId/comments/:commentId', jwtAuthMiddleware(), asyncMiddleware(deleteComment));
+router.post('/:movieId/comments', asyncMiddleware(postComment));
+router.delete('/:movieId/comments/:commentId', asyncMiddleware(deleteComment));
 
 async function getAllCommentsForMovie(req, res) {
   const { movieId } = req.params;
