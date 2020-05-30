@@ -33,6 +33,11 @@ class ProjectionRepository extends BaseRepository {
       { cacheKey: this.name });
   }
 
+  getAllProjectionsForMovie(movieId) {
+    return mainSession
+      .run(`MATCH (p:Projection)-[:IS_STREAMING]->(m:Movie) WHERE ID(m)=${movieId} RETURN p`);
+  }
+
   async getAllProjectionsForCinema(cinemaId) {
     const projections = await mainSession
       .run(`MATCH (c)<-[r: PLAYED_AT]-(projection)-[:IS_STREAMING]->(movie:Movie) WHERE ID(c) = ${cinemaId}
