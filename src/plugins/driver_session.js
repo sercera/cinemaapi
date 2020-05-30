@@ -52,10 +52,10 @@ function defaultRun(isSingle, driver) {
       result = result && isSingle ? result[0] : result;
       return result;
     }
-
     const key = customKey || query;
 
     const cacheValue = await cacheClient.hget(cacheKey, key);
+
     if (cacheValue) {
       return JSON.parse(cacheValue);
     }
