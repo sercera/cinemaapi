@@ -17,6 +17,7 @@ router.get('/', asyncMiddleware(getAllMovies));
 router.get('/actors', asyncMiddleware(getAllMoviesWithActors));
 router.get('/categories', asyncMiddleware(getMoviesByLikedCategories));
 router.get('/recommended', asyncMiddleware(getRecomendedMovies));
+router.get('/recommended/search/:searchTerm', asyncMiddleware(getRecomendedMoviesWithSearch));
 router.get('/liked', asyncMiddleware(getLikedMovies));
 router.post('/', roleAuthMiddleware(USER_ROLES.ADMIN), imageUploadMiddleware('imageUrl'), asyncMiddleware(createMovie));
 router.put('/:id', roleAuthMiddleware(USER_ROLES.ADMIN), imageUploadMiddleware('imageUrl'), asyncMiddleware(updateMovie));
@@ -114,6 +115,25 @@ async function getRecomendedMovies(req, res) {
   if (allMovies.length < 20) {
     const randomMovies = await MovieRepository.getAllStreamingMovies({ limit: 20 });
     for (const movie of randomMovies) {
+      if (!allMovies.some((recMovies) => recMovies.id === movie.id) && allMovies.length < 20) {
+        allMovies.push(movie);
+      }
+    }
+  }
+  return res.json(allMovies);
+}
+
+async function getRecomendedMoviesWithSearch(req, res) {
+  const { id } = req.user;
+  const { searchTerm } = req.params;
+  const movies = await MovieRepository.getRecomendedWithSearch(id, searchTerm);
+  const allMovies = [];
+  for (const movie of movies) {
+    allMovies.push(movie);
+  }
+  if (allMovies.length < 20) {
+    const { data } = await MovieRepository.getPaginated({ searchTerm });
+    for (const movie of data) {
       if (!allMovies.some((recMovies) => recMovies.id === movie.id) && allMovies.length < 20) {
         allMovies.push(movie);
       }
