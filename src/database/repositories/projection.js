@@ -108,7 +108,7 @@ class ProjectionRepository extends BaseRepository {
 
   cancelReservation(reservationId, seatsTaken) {
     return mainSession
-      .run(`MATCH ()-[r: MAKE_RESERVATION]->(p) WHERE ID(r) = ${reservationId}
+      .run(`MATCH (u:User)-[r: MAKE_RESERVATION]->(p) WHERE ID(r) = ${reservationId}
       WITH size(r.seats) AS length, p, r
       SET p += { seatsAvailable: TOINT(p.seatsAvailable)+ TOINT(length), seatsTaken: [${seatsTaken}] }
     DELETE r`);
