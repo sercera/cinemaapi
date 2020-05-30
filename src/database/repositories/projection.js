@@ -93,7 +93,7 @@ class ProjectionRepository extends BaseRepository {
 
   getReservationsForUser(userId) {
     return mainSession
-      .run(`
+      .runOne(`
         MATCH (u:User)-[r:MAKE_RESERVATION]->(p:Projection) WHERE ID(u)=${userId} return r
       `);
   }

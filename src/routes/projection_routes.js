@@ -15,6 +15,7 @@ router.post('/cinemas/:cinemaId', asyncMiddleware(addProjection));
 
 router.post('/:projectionId/reservations', jwtAuthMiddleware(), asyncMiddleware(makeReservation));
 router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
+router.get('/reservations', jwtAuthMiddleware(), asyncMiddleware(getMyReservation));
 router.delete('/reservations/:reservationId', asyncMiddleware(cancelReservation));
 router.get('/:id', jwtAuthMiddleware(), asyncMiddleware(getById));
 
@@ -32,6 +33,7 @@ async function getById(req, res) {
   const comments = await CommentRepository.getAllCommentsForMovie(projection.movie.id);
   const likes = await MovieRepository.getNumberOfLikes(projection.movie.id);
   const liked = await MovieRepository.checkIfUserLikedMovie(projection.movie.id, userId);
+  const { seats } = await ProjectionRepository.getReservationsForUser(userId);
   projection.movie.actors = actors;
   const formatedComments = [];
   // eslint-disable-next-line no-restricted-syntax
@@ -45,6 +47,7 @@ async function getById(req, res) {
     };
     formatedComments.push(obj);
   }
+  projection.mySeats = seats;
   projection.movie.comments = formatedComments;
   projection.movie.likes = likes[0];
   if (liked) {
@@ -109,6 +112,12 @@ async function checkReservation(req, res) {
   const { params: { projectionId } } = req;
   const reservation = await ProjectionRepository.getReservationsForProjection(projectionId);
   return res.json({ reservation });
+}
+
+async function getMyReservation(req, res) {
+  const { id: userId } = req.user;
+  const reservation = await ProjectionRepository.getReservationsForUser(userId);
+  return res.json(reservation);
 }
 
 async function cancelReservation(req, res) {
