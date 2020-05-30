@@ -13,7 +13,7 @@ router.get('/cinemas', asyncMiddleware(getAllCinemasForProjection));
 router.get('/cinemas/:cinemaId', asyncMiddleware(getAllProjectionsForCinema));
 router.post('/cinemas/:cinemaId', asyncMiddleware(addProjection));
 
-router.post('/:projectionId/reservations', asyncMiddleware(makeReservation));
+router.post('/:projectionId/reservations', jwtAuthMiddleware(), asyncMiddleware(makeReservation));
 router.get('/:projectionId/reservations', asyncMiddleware(checkReservation));
 router.delete('/reservations/:reservationId', asyncMiddleware(cancelReservation));
 router.get('/:id', jwtAuthMiddleware(), asyncMiddleware(getById));
@@ -88,7 +88,7 @@ async function deleteProjection(req, res) {
 }
 
 async function makeReservation(req, res) {
-  const { body: { userId, seatNumbers }, params: { projectionId } } = req;
+  const { user: { id: userId }, body: { seatNumbers }, params: { projectionId } } = req;
   const { seatsTaken } = await ProjectionRepository.getById(projectionId);
   let seatTaken = false;
   // eslint-disable-next-line no-restricted-syntax

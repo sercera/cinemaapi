@@ -11,8 +11,16 @@ router.get('/:actorId', asyncMiddleware(getById));
 router.delete('/:actorId', asyncMiddleware(deleteActor));
 
 async function getAll(req, res) {
-  const { limit, skip, sort } = req.query;
-  const actors = await ActorRepository.getAll({ limit, skip, sort });
+  let limited = 20;
+  let skiped = 0;
+  const { limit, skip } = req.query;
+  if (limit) {
+    limited = limit;
+  }
+  if (skip) {
+    skiped = skip;
+  }
+  const actors = await ActorRepository.getAll({ limit: limited, skip: skiped });
   return res.json(actors);
 }
 
